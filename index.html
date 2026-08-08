@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wahib Zarifeh — Resume</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #5a5a5a;
+    --rule: #d8d8d8;
+    --accent: #1f5c4a;
+    --bg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #f4f4f2;
+    color: var(--ink);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  main {
+    max-width: 800px;
+    margin: 40px auto;
+    background: var(--bg);
+    padding: 56px 64px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  header.resume-header {
+    margin-bottom: 28px;
+  }
+  h1 {
+    margin: 0 0 6px;
+    font-size: 2rem;
+    letter-spacing: 0.5px;
+  }
+  .title-line {
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .contact a { color: var(--muted); text-decoration: none; }
+  .contact a:hover { color: var(--accent); text-decoration: underline; }
+  section { margin-top: 30px; }
+  h2 {
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+  }
+  .summary { color: var(--ink); }
+  .competencies-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 32px;
+  }
+  .competency h3 {
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+  }
+  .competency p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .job { margin-bottom: 22px; }
+  .job:last-child { margin-bottom: 0; }
+  .job-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+  }
+  .job-title { font-weight: 600; }
+  .job-org { font-style: italic; color: var(--muted); font-weight: 400; }
+  .job-meta {
+    text-align: right;
+    color: var(--muted);
+    font-size: 0.88rem;
+    white-space: nowrap;
+  }
+  ul.job-bullets {
+    margin: 8px 0 0;
+    padding-left: 20px;
+  }
+  ul.job-bullets li { margin-bottom: 4px; font-size: 0.94rem; }
+  .edu-item, .course-item {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+  }
+  .edu-item + .edu-item { margin-top: 10px; }
+  .edu-degree { font-weight: 600; }
+  .edu-org { font-style: italic; color: var(--muted); }
+  .edu-meta { text-align: right; color: var(--muted); font-size: 0.88rem; }
+  @media (max-width: 640px) {
+    main { padding: 32px 24px; margin: 0; box-shadow: none; }
+    .competencies-grid { grid-template-columns: 1fr; }
+    .job-meta, .edu-meta { text-align: left; }
+  }
+  @media print {
+    body { background: #fff; }
+    main { box-shadow: none; margin: 0; padding: 20px; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="resume-header">
+    <h1>Wahib Zarifeh</h1>
+    <div class="title-line">VoIP Operations Manager</div>
+    <div class="contact">
+      <a href="mailto:wahib.zarifeh7@gmail.com">wahib.zarifeh7@gmail.com</a>
+      <span>+963 95 330 6472</span>
+      <span>Assweida, Syria</span>
+      <a href="https://linkedin.com/in/wahib-zarifeh-012546274" target="_blank" rel="noopener">linkedin.com/in/wahib-zarifeh-012546274</a>
+    </div>
+  </header>
+
+  <section>
+    <h2>Professional Summary</h2>
+    <p class="summary">
+      Dynamic and technical VoIP Operations Manager with over 5 years of experience spanning VoIP network
+      administration, customer support management, and telecommunications sales. Proven track record in
+      monitoring call quality, configuring gateways and trunks, closing wholesale telecom deals, and resolving
+      complex technical issues. Trilingual professional (Arabic, Spanish, English) combining technical
+      troubleshooting prowess with business development and client-facing expertise.
+    </p>
+  </section>
+
+  <section>
+    <h2>Core Competencies</h2>
+    <div class="competencies-grid">
+      <div class="competency">
+        <h3>VoIP &amp; Telecom</h3>
+        <p>Cloudfonica Configuration, Gateways &amp; PCS, DIDWW Documentation, Trunking (Originators/Terminators), QoS Monitoring</p>
+      </div>
+      <div class="competency">
+        <h3>Operations &amp; Support</h3>
+        <p>Helpdesk Administration, Ticket Management, Remote Support (AnyDesk), Incident Management, Google Analytics</p>
+      </div>
+      <div class="competency">
+        <h3>Business &amp; Sales</h3>
+        <p>Wholesale Client Acquisition, Deal Closure, Client Onboarding, Account Management, Target Achievement</p>
+      </div>
+      <div class="competency">
+        <h3>Technical Skills</h3>
+        <p>Hardware &amp; Software Maintenance (PCs &amp; Mobile Devices), Graphic Design Basics</p>
+      </div>
+      <div class="competency">
+        <h3>Languages</h3>
+        <p>Arabic (Native), Spanish (Native), English (C1 — Professional Working Proficiency)</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Professional Experience</h2>
+
+    <div class="job">
+      <div class="job-head">
+        <div><span class="job-title">Customer Support Manager</span>, <span class="job-org">Cybtel Mobile App</span></div>
+        <div class="job-meta">2024 – Present<br>Remote, United Arab Emirates</div>
+      </div>
+      <ul class="job-bullets">
+        <li>Managed the helpdesk ticketing system, resolving customer inquiries regarding call quality, app functionality, and account balances.</li>
+        <li>Navigated regulatory and document requirements on DIDWW to complete client verifications and DID provisioning.</li>
+        <li>Managed all main corporate emails, ensuring fast response times and high customer satisfaction scores.</li>
+        <li>Tracked daily app performance and user engagement metrics, generating and uploading daily reports via Google Analytics.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-head">
+        <div><span class="job-title">VoIP Operations Manager</span>, <span class="job-org">Cybtel</span></div>
+        <div class="job-meta">2020 – Present<br>Remote, United Arab Emirates</div>
+      </div>
+      <ul class="job-bullets">
+        <li>Monitored voice network traffic and Call Detail Records (CDRs) continuously to detect quality degradation (QoS) and resolve issues rapidly.</li>
+        <li>Escalated and routed complex network and routing anomalies immediately to designated engineers to minimize downtime.</li>
+        <li>Successfully configured new originators and terminators to maintain robust network connectivity and optimized routing paths.</li>
+        <li>Negotiated and closed wholesale VoIP traffic deals with international clients, driving revenue growth.</li>
+        <li>Managed Cloudfonica server setup end-to-end, including configuring gateways and PCS parameters.</li>
+        <li>Provided hands-on remote technical assistance to enterprise clients using AnyDesk and other remote support software.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-head">
+        <div><span class="job-title">Sales Representative (Wholesale Branch)</span>, <span class="job-org">Samatel Technologies &amp; Telecommunication</span></div>
+        <div class="job-meta">2017 – 2020<br>Swaida, Syria</div>
+      </div>
+      <ul class="job-bullets">
+        <li>Conducted daily field visits to mobile retailers across Sweida State to present promotional offers and secure wholesale deals.</li>
+        <li>Consistently met and exceeded monthly and annual sales quotas for mobile devices and accessories.</li>
+        <li>Cultivated long-term business relationships with store owners to ensure brand loyalty and steady volume orders.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-head">
+        <div><span class="job-title">Customer Support &amp; Maintenance Specialist</span>, <span class="job-org">M.Z Technologies</span></div>
+        <div class="job-meta">2013 – 2017<br>Assweidaa, Syria</div>
+      </div>
+      <ul class="job-bullets">
+        <li>Attended customer calls and provided required information; delivered service information to visitors and guests.</li>
+        <li>Verified orders and prices over the phone, entered orders in the system, and managed change orders and cancellations.</li>
+        <li>Identified customer needs and proactively recommended relevant products or services, contributing to team lead generation goals.</li>
+        <li>Built strong relationships with regular customers and responded promptly to inquiries; resolved complaints and directed them to appropriate departments.</li>
+        <li>Flashed, formatted, and unlocked phones using various software; installed and configured new phone systems.</li>
+        <li>Troubleshot and diagnosed phone and computer system issues, repairing and replacing faulty components and updating software.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Education</h2>
+    <div class="edu-item">
+      <div>
+        <div class="edu-degree">Bachelor of Translation (English – Arabic)</div>
+        <div class="edu-org">Damascus University</div>
+      </div>
+      <div class="edu-meta">2016<br>Damascus, Syria</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Courses</h2>
+    <div class="course-item">
+      <div class="edu-degree">Graphic Design for Beginners</div>
+      <div class="edu-meta">Design Institute</div>
+    </div>
+  </section>
+</main>
+</body>
+</html>
