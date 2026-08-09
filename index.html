@@ -245,6 +245,17 @@
   .job-title-block { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .job-title { font-weight: 600; font-size: 1.02rem; }
   .job-org { color: var(--muted); font-size: 0.92rem; }
+  .job-org a {
+    color: var(--muted);
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 3px;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  }
+  .job-org a:hover, .job-org a:focus-visible {
+    color: var(--signal);
+    text-decoration-color: var(--signal);
+  }
   .live-badge {
     display: inline-flex;
     align-items: center;
@@ -404,7 +415,7 @@
         <div class="job-head">
           <div class="job-title-block">
             <span class="job-title">Customer Support Manager</span>
-            <span class="job-org">— Cybtel Mobile App</span>
+            <span class="job-org">— <a href="https://cybtel.com/" target="_blank" rel="noopener">Cybtel Mobile App</a></span>
             <span class="live-badge mono"><span class="dot"></span>Live</span>
           </div>
           <div class="job-meta mono">2024 – Present<br>Remote, UAE</div>
@@ -421,7 +432,7 @@
         <div class="job-head">
           <div class="job-title-block">
             <span class="job-title">VoIP Operations Manager</span>
-            <span class="job-org">— Cybtel</span>
+            <span class="job-org">— <a href="https://cybtel.com/" target="_blank" rel="noopener">Cybtel</a></span>
             <span class="live-badge mono"><span class="dot"></span>Live</span>
           </div>
           <div class="job-meta mono">2020 – Present<br>Remote, UAE</div>
@@ -440,7 +451,7 @@
         <div class="job-head">
           <div class="job-title-block">
             <span class="job-title">Sales Representative</span>
-            <span class="job-org">— Samatel Technologies &amp; Telecommunication (Wholesale Branch)</span>
+            <span class="job-org">— <a href="http://www.samatel.sy/" target="_blank" rel="noopener">Samatel Technologies &amp; Telecommunication</a> (Wholesale Branch)</span>
           </div>
           <div class="job-meta mono">2017 – 2020<br>Swaida, Syria</div>
         </div>
@@ -455,7 +466,7 @@
         <div class="job-head">
           <div class="job-title-block">
             <span class="job-title">Customer Support &amp; Maintenance Specialist</span>
-            <span class="job-org">— M.Z Technologies</span>
+            <span class="job-org">— <a href="https://www.facebook.com/profile.php?id=100067439775382" target="_blank" rel="noopener">M.Z Technologies</a></span>
           </div>
           <div class="job-meta mono">2013 – 2017<br>Assweidaa, Syria</div>
         </div>
