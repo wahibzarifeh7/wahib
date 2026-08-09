@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wahib Zarifeh — VoIP Operations Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #171b22;
+    --surface: #1f2530;
+    --surface-2: #242b37;
+    --border: #313b4a;
+    --text: #e9edf2;
+    --muted: #8993a3;
+    --signal: #4ade9c;
+    --amber: #e8a94c;
+    --c-blue: #5b8def;
+    --c-orange: #e8834c;
+    --c-green: #4ade9c;
+    --c-brown: #a9855c;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(91,141,239,0.05), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgba(74,222,156,0.05), transparent 40%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+
+  .mono {
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    letter-spacing: 0.03em;
+  }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 18px 24px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .statusbar .dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--signal);
+    margin-right: 8px;
+    box-shadow: 0 0 6px var(--signal);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+
+  /* ---------- header ---------- */
+  header.hero {
+    padding: 12px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  h1 {
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.6rem, 9vw, 4.4rem);
+    line-height: 0.92;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .role-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+  .role-line::before {
+    content: "";
+    width: 26px;
+    height: 2px;
+    background: var(--signal);
+    display: inline-block;
+  }
+
+  .contact-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+  .contact-strip a, .contact-strip span {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 6px 12px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .contact-strip a:hover { border-color: var(--signal); color: var(--text); }
+
+  /* ---------- section headings ---------- */
+  section { margin-top: 52px; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .sec-head .tag {
+    font-size: 0.7rem;
+    color: var(--bg);
+    background: var(--signal);
+    padding: 2px 7px;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .sec-head h2 {
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text);
+  }
+  .sec-head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .summary {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 62ch;
+  }
+  .summary strong { color: var(--text); font-weight: 600; }
+
+  /* ---------- competencies: patch panel jacks ---------- */
+  .jack-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .jack {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    position: relative;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .jack:hover { border-color: var(--signal); transform: translateY(-1px); }
+  .jack .port-id {
+    font-size: 0.68rem;
+    color: var(--signal);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .jack h3 {
+    margin: 0 0 4px;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .jack p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  /* ---------- experience: trunk line ---------- */
+  .trunk {
+    position: relative;
+    padding-left: 28px;
+  }
+  .trunk::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: linear-gradient(var(--border), var(--border));
+    background-size: 100% 100%;
+    animation: draw 1.1s ease-out;
+  }
+  .job { position: relative; margin-bottom: 36px; }
+  .job:last-child { margin-bottom: 0; }
+  .job::before {
+    content: "";
+    position: absolute;
+    left: -28px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--jack-color, var(--muted));
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--jack-color, var(--muted));
+  }
+  .job[data-line="blue"]   { --jack-color: var(--c-blue); }
+  .job[data-line="orange"] { --jack-color: var(--c-orange); }
+  .job[data-line="green"]  { --jack-color: var(--c-green); }
+  .job[data-line="brown"]  { --jack-color: var(--c-brown); }
+
+  .job-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+  .job-title-block { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .job-title { font-weight: 600; font-size: 1.02rem; }
+  .job-org { color: var(--muted); font-size: 0.92rem; }
+  .job-org a {
+    color: var(--muted);
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 3px;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  }
+  .job-org a:hover, .job-org a:focus-visible {
+    color: var(--signal);
+    text-decoration-color: var(--signal);
+  }
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--signal);
+    border: 1px solid var(--signal);
+    border-radius: 20px;
+    padding: 1px 8px 1px 6px;
+    text-transform: uppercase;
+  }
+  .live-badge .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--signal);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+  .job-meta {
+    text-align: right;
+    color: var(--muted);
+    font-size: 0.76rem;
+    white-space: nowrap;
+  }
+  ul.job-bullets {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: var(--text);
+  }
+  ul.job-bullets li {
+    margin-bottom: 5px;
+    font-size: 0.92rem;
+    padding-left: 2px;
+  }
+  ul.job-bullets li::marker { color: var(--jack-color, var(--muted)); }
+
+  /* ---------- education / courses ---------- */
+  .edu-item, .course-item {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 18px;
+  }
+  .edu-item + .edu-item, .course-item + .course-item { margin-top: 10px; }
+  .edu-degree { font-weight: 600; font-size: 0.95rem; }
+  .edu-org { color: var(--muted); font-size: 0.85rem; }
+  .edu-meta { text-align: right; color: var(--muted); font-size: 0.78rem; }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  @keyframes draw {
+    from { clip-path: inset(0 0 100% 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dot, .trunk::before { animation: none !important; }
+  }
+
+  @media (max-width: 620px) {
+    .jack-grid { grid-template-columns: 1fr; }
+    .job-meta, .edu-meta { text-align: left; }
+    main { padding: 0 16px 60px; }
+  }
+
+  @media print {
+    body { background: #fff; color: #111; }
+    .statusbar, .contact-strip a { border-color: #ccc; }
+    .jack, .edu-item, .course-item { background: #fff; border-color: #ccc; }
+    .dot { animation: none; box-shadow: none; }
+    a { text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="statusbar mono">
+  <span><span class="dot"></span>STATUS: CONNECTED</span>
+  <span>REV. 2026</span>
+</div>
+
+<main>
+  <header class="hero">
+    <h1>Wahib<br>Zarifeh</h1>
+    <div class="role-line">VoIP Operations Manager</div>
+    <div class="contact-strip mono">
+      <a href="mailto:wahib.zarifeh7@gmail.com">wahib.zarifeh7@gmail.com</a>
+      <span>+963 95 330 6472</span>
+      <span>Assweida, Syria</span>
+      <a href="https://linkedin.com/in/wahib-zarifeh-012546274" target="_blank" rel="noopener">linkedin.com/in/wahib-zarifeh-012546274</a>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head"><span class="tag mono">01</span><h2>Summary</h2></div>
+    <p class="summary">
+      Dynamic and technical <strong>VoIP Operations Manager</strong> with over <strong>5 years</strong> of experience
+      spanning VoIP network administration, customer support management, and telecommunications sales. Proven
+      track record in monitoring call quality, configuring gateways and trunks, closing wholesale telecom deals,
+      and resolving complex technical issues. Trilingual professional (Arabic, Spanish, English) combining
+      technical troubleshooting prowess with business development and client-facing expertise.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="tag mono">02</span><h2>Core Competencies</h2></div>
+    <div class="jack-grid">
+      <div class="jack">
+        <span class="port-id mono">PORT · VT</span>
+        <h3>VoIP &amp; Telecom</h3>
+        <p>Cloudfonica configuration, gateways &amp; PCS, DIDWW documentation, trunking (originators/terminators), QoS monitoring</p>
+      </div>
+      <div class="jack">
+        <span class="port-id mono">PORT · OS</span>
+        <h3>Operations &amp; Support</h3>
+        <p>Helpdesk administration, ticket management, remote support (AnyDesk), incident management, Google Analytics</p>
+      </div>
+      <div class="jack">
+        <span class="port-id mono">PORT · BS</span>
+        <h3>Business &amp; Sales</h3>
+        <p>Wholesale client acquisition, deal closure, client onboarding, account management, target achievement</p>
+      </div>
+      <div class="jack">
+        <span class="port-id mono">PORT · TS</span>
+        <h3>Technical Skills</h3>
+        <p>Hardware &amp; software maintenance (PCs &amp; mobile devices), graphic design basics</p>
+      </div>
+      <div class="jack" style="grid-column: 1 / -1;">
+        <span class="port-id mono">PORT · LN</span>
+        <h3>Languages</h3>
+        <p>Arabic (Native), Spanish (Native), English (C1 — Professional Working Proficiency)</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="tag mono">03</span><h2>Experience</h2></div>
+    <div class="trunk">
+
+      <div class="job" data-line="blue">
+        <div class="job-head">
+          <div class="job-title-block">
+            <span class="job-title">Customer Support Manager</span>
+            <span class="job-org">— <a href="https://cybtel.com/" target="_blank" rel="noopener">Cybtel Mobile App</a></span>
+            <span class="live-badge mono"><span class="dot"></span>Live</span>
+          </div>
+          <div class="job-meta mono">2024 – Present<br>Remote, UAE</div>
+        </div>
+        <ul class="job-bullets">
+          <li>Managed the helpdesk ticketing system, resolving customer inquiries regarding call quality, app functionality, and account balances.</li>
+          <li>Navigated regulatory and document requirements on DIDWW to complete client verifications and DID provisioning.</li>
+          <li>Managed all main corporate emails, ensuring fast response times and high customer satisfaction scores.</li>
+          <li>Tracked daily app performance and user engagement metrics, generating and uploading daily reports via Google Analytics.</li>
+        </ul>
+      </div>
+
+      <div class="job" data-line="orange">
+        <div class="job-head">
+          <div class="job-title-block">
+            <span class="job-title">VoIP Operations Manager</span>
+            <span class="job-org">— <a href="https://cybtel.com/" target="_blank" rel="noopener">Cybtel</a></span>
+            <span class="live-badge mono"><span class="dot"></span>Live</span>
+          </div>
+          <div class="job-meta mono">2020 – Present<br>Remote, UAE</div>
+        </div>
+        <ul class="job-bullets">
+          <li>Monitored voice network traffic and Call Detail Records (CDRs) continuously to detect quality degradation (QoS) and resolve issues rapidly.</li>
+          <li>Escalated and routed complex network and routing anomalies immediately to designated engineers to minimize downtime.</li>
+          <li>Successfully configured new originators and terminators to maintain robust network connectivity and optimized routing paths.</li>
+          <li>Negotiated and closed wholesale VoIP traffic deals with international clients, driving revenue growth.</li>
+          <li>Managed Cloudfonica server setup end-to-end, including configuring gateways and PCS parameters.</li>
+          <li>Provided hands-on remote technical assistance to enterprise clients using AnyDesk and other remote support software.</li>
+        </ul>
+      </div>
+
+      <div class="job" data-line="green">
+        <div class="job-head">
+          <div class="job-title-block">
+            <span class="job-title">Sales Representative</span>
+            <span class="job-org">— <a href="http://www.samatel.sy/" target="_blank" rel="noopener">Samatel Technologies &amp; Telecommunication</a> (Wholesale Branch)</span>
+          </div>
+          <div class="job-meta mono">2017 – 2020<br>Swaida, Syria</div>
+        </div>
+        <ul class="job-bullets">
+          <li>Conducted daily field visits to mobile retailers across Sweida State to present promotional offers and secure wholesale deals.</li>
+          <li>Consistently met and exceeded monthly and annual sales quotas for mobile devices and accessories.</li>
+          <li>Cultivated long-term business relationships with store owners to ensure brand loyalty and steady volume orders.</li>
+        </ul>
+      </div>
+
+      <div class="job" data-line="brown">
+        <div class="job-head">
+          <div class="job-title-block">
+            <span class="job-title">Customer Support &amp; Maintenance Specialist</span>
+            <span class="job-org">— <a href="https://www.facebook.com/profile.php?id=100067439775382" target="_blank" rel="noopener">M.Z Technologies</a></span>
+          </div>
+          <div class="job-meta mono">2013 – 2017<br>Assweidaa, Syria</div>
+        </div>
+        <ul class="job-bullets">
+          <li>Attended customer calls and provided required information; delivered service information to visitors and guests.</li>
+          <li>Verified orders and prices over the phone, entered orders in the system, and managed change orders and cancellations.</li>
+          <li>Identified customer needs and proactively recommended relevant products or services, contributing to team lead generation goals.</li>
+          <li>Built strong relationships with regular customers and responded promptly to inquiries; resolved complaints and directed them to appropriate departments.</li>
+          <li>Flashed, formatted, and unlocked phones using various software; installed and configured new phone systems.</li>
+          <li>Troubleshot and diagnosed phone and computer system issues, repairing and replacing faulty components and updating software.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="tag mono">04</span><h2>Education</h2></div>
+    <div class="edu-item">
+      <div>
+        <div class="edu-degree">Bachelor of Translation (English – Arabic)</div>
+        <div class="edu-org">Damascus University</div>
+      </div>
+      <div class="edu-meta mono">2016<br>Damascus, Syria</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="tag mono">05</span><h2>Courses</h2></div>
+    <div class="course-item">
+      <div class="edu-degree">Graphic Design for Beginners</div>
+      <div class="edu-meta mono">Design Institute</div>
+    </div>
+  </section>
+
+  <footer class="mono">
+    <span>Wahib Zarifeh</span>
+    <span>End of line</span>
+  </footer>
+</main>
+
+</body>
+</html>
