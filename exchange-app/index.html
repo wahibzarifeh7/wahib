@@ -1,0 +1,1758 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="dark" />
+<title>M.Z Technologies &middot; Exchange Desk</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230B0F14'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23D6A24C' font-family='Georgia,serif'%3E$%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: { 950:'#0B0F14', 900:'#10151C', 850:'#161D26', 800:'#1D2531', 700:'#2A3441', 600:'#3B4756', 500:'#57667A' },
+          paper: { DEFAULT:'#F3EEE2', dim:'#B9B2A2' },
+          brass: { DEFAULT:'#D6A24C', bright:'#F0C374', dim:'#8A6B2E' },
+          teal: { DEFAULT:'#3E9C8D', bright:'#5FCBB9', dim:'#295C54' },
+          rose: { DEFAULT:'#E2574C', bright:'#F1857C' },
+        },
+        fontFamily: {
+          display: ['Fraunces', 'serif'],
+          sans: ['Inter', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  :root { color-scheme: dark; }
+  html, body { background: #0B0F14; }
+  body { font-family: 'Inter', sans-serif; }
+  .font-tabular { font-variant-numeric: tabular-nums; }
+
+  ::selection { background: #D6A24C; color: #0B0F14; }
+
+  ::-webkit-scrollbar { height: 10px; width: 10px; }
+  ::-webkit-scrollbar-track { background: #10151C; }
+  ::-webkit-scrollbar-thumb { background: #2A3441; border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3B4756; }
+
+  *:focus-visible { outline: 2px solid #D6A24C; outline-offset: 2px; }
+
+  /* ---- brand mark ---- */
+  .brand-mark { font-family: 'Fraunces', serif; letter-spacing: 0.02em; }
+
+  /* ---- Arabic / RTL ---- */
+  html[dir="rtl"] { font-family: 'Cairo', sans-serif; }
+  [dir="rtl"] .font-display, [dir="rtl"] .brand-mark { font-family: 'Cairo', sans-serif; font-weight: 700; letter-spacing: 0; }
+  [dir="rtl"] #toast-container { right: auto; left: 16px; }
+  @keyframes toastInRtl { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+  @keyframes toastOutRtl { from { opacity: 1; } to { opacity: 0; transform: translateX(-16px); } }
+  [dir="rtl"] .toast { animation-name: toastInRtl; }
+  [dir="rtl"] .toast.out { animation-name: toastOutRtl; }
+
+  .lang-btn { color: #B9B2A2; font-family: 'Inter', sans-serif; }
+  .lang-btn.active { background: #D6A24C; color: #14100A; }
+
+  /* ---- rate board (signature element) ---- */
+  .rate-board {
+    background:
+      radial-gradient(120% 140% at 10% 0%, rgba(214,162,76,0.08), transparent 55%),
+      linear-gradient(180deg, #12181F 0%, #0D1218 100%);
+    border: 1px solid #232C39;
+    position: relative;
+    overflow: hidden;
+  }
+  .rate-board::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+    pointer-events: none;
+  }
+  .rate-digits {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 18px currentColor;
+    direction: ltr;
+  }
+  .flap-panel {
+    background: linear-gradient(180deg, #171F29 0%, #0F151C 100%);
+    border: 1px solid #2A3441;
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -6px 14px rgba(0,0,0,0.35);
+    position: relative;
+  }
+  .flap-panel::after {
+    content: '';
+    position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+    background: rgba(0,0,0,0.45);
+    transform: translateY(-0.5px);
+  }
+  @keyframes flapFlicker {
+    0% { opacity: 1; transform: none; filter: none; }
+    18% { opacity: 0.25; transform: scaleY(0.9); filter: blur(1px); }
+    40% { opacity: 0.85; transform: scaleY(1.03); filter: none; }
+    60% { opacity: 0.4; transform: scaleY(0.96); }
+    100% { opacity: 1; transform: none; }
+  }
+  .flap-update { animation: flapFlicker 0.5s ease-in-out; }
+  @media (prefers-reduced-motion: reduce) {
+    .flap-update { animation: none; }
+  }
+
+  /* ---- surfaces ---- */
+  .panel { background: #12181F; border: 1px solid #212A36; }
+  .panel-raised { background: #161D26; border: 1px solid #262F3D; }
+
+  /* ---- buttons ---- */
+  .btn { font-weight: 600; transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .1s ease; }
+  .btn:active { transform: translateY(1px); }
+  .btn-brass { background: #D6A24C; color: #14100A; }
+  .btn-brass:hover { background: #F0C374; }
+  .btn-teal { background: #3E9C8D; color: #06120F; }
+  .btn-teal:hover { background: #5FCBB9; }
+  .btn-ghost { background: transparent; border: 1px solid #2A3441; color: #F3EEE2; }
+  .btn-ghost:hover { background: #1D2531; border-color: #3B4756; }
+  .btn-danger { background: transparent; border: 1px solid #5c3230; color: #F1857C; }
+  .btn-danger:hover { background: rgba(226,87,76,0.12); border-color: #E2574C; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .field-input {
+    background: #0F151C; border: 1px solid #2A3441; color: #F3EEE2;
+    transition: border-color .15s ease;
+  }
+  .field-input::placeholder { color: #57667A; }
+  .field-input:focus { border-color: #D6A24C; }
+
+  .tab-btn { color: #B9B2A2; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: #F3EEE2; border-bottom-color: #D6A24C; }
+  .tab-btn:hover:not(.active) { color: #F3EEE2; }
+
+  .type-toggle { background: #0F151C; border: 1px solid #2A3441; color: #B9B2A2; }
+  .type-toggle.active-buy { background: #D6A24C; color: #14100A; border-color: #D6A24C; }
+  .type-toggle.active-sell { background: #3E9C8D; color: #06120F; border-color: #3E9C8D; }
+
+  .badge { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+  [dir="rtl"] .badge { text-transform: none; }
+  .badge-buy { background: rgba(214,162,76,0.14); color: #F0C374; border: 1px solid rgba(214,162,76,0.3); }
+  .badge-sell { background: rgba(63,156,141,0.14); color: #5FCBB9; border: 1px solid rgba(63,156,141,0.3); }
+  .badge-admin { background: rgba(214,162,76,0.14); color: #F0C374; border: 1px solid rgba(214,162,76,0.3); }
+  .badge-staff { background: rgba(255,255,255,0.06); color: #B9B2A2; border: 1px solid #2A3441; }
+
+  table.ledger { border-collapse: collapse; width: 100%; }
+  table.ledger th { text-align: start; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #57667A; font-weight: 600; padding: 8px 12px; border-bottom: 1px solid #232C39; white-space: nowrap; }
+  [dir="rtl"] table.ledger th { text-transform: none; }
+  table.ledger td { padding: 10px 12px; border-bottom: 1px solid #1A212B; font-size: 13.5px; white-space: nowrap; }
+  table.ledger tbody tr:hover { background: rgba(255,255,255,0.02); }
+  table.ledger td.num, table.ledger th.num { text-align: right; font-family: 'IBM Plex Mono', monospace; direction: ltr; }
+
+  /* ---- toasts ---- */
+  #toast-container { position: fixed; top: 16px; right: 16px; z-index: 100; display: flex; flex-direction: column; gap: 8px; max-width: min(92vw, 360px); }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+  @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(16px); } }
+  .toast { animation: toastIn .18s ease-out; }
+  .toast.out { animation: toastOut .18s ease-in forwards; }
+
+  /* ---- modal ---- */
+  #modal-root:empty { display: none; }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(6,9,12,0.72); backdrop-filter: blur(2px); z-index: 90; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.97) translateY(6px); } to { opacity: 1; transform: none; } }
+  .modal-card { animation: modalIn .16s ease-out; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toast, .modal-card { animation: none !important; }
+  }
+</style>
+</head>
+<body class="bg-ink-950 text-paper antialiased min-h-screen">
+
+<!-- ============== LOGIN SCREEN ============== -->
+<div id="login-screen" class="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(60% 50% at 50% 0%, rgba(214,162,76,0.08), transparent 60%);"></div>
+  <div id="lang-toggle-login" class="absolute top-4 end-4"></div>
+  <div class="w-full max-w-sm relative">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 brand-mark text-2xl sm:text-3xl text-paper">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" class="text-brass shrink-0"><path d="M7 7h13M7 7l3.5-3.5M7 7l3.5 3.5M17 17H4M17 17l-3.5-3.5M17 17l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        M.Z Technologies
+      </div>
+      <div class="text-xs uppercase tracking-[0.2em] text-paper-dim mt-2" data-i18n="tagline">Currency Exchange Desk</div>
+    </div>
+    <form id="login-form" data-form="login" class="panel rounded-xl p-6 shadow-2xl shadow-black/40">
+      <div class="mb-4">
+        <label for="login-username" class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="usernameLabel">Username</label>
+        <input id="login-username" name="username" type="text" autocomplete="username" required class="field-input w-full rounded-lg px-3 py-2.5 text-sm" placeholder="e.g. admin" data-i18n-placeholder="loginUsernamePlaceholder" />
+      </div>
+      <div class="mb-5">
+        <label for="login-password" class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="passwordLabel">Password</label>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required class="field-input w-full rounded-lg px-3 py-2.5 text-sm" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" />
+      </div>
+      <div id="login-error" class="hidden text-rose-bright text-xs mb-4 bg-rose/10 border border-rose/30 rounded-lg px-3 py-2"></div>
+      <button type="submit" class="btn btn-brass w-full rounded-lg py-2.5 text-sm" data-i18n="signIn">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============== APP SHELL ============== -->
+<div id="app" class="hidden min-h-screen flex flex-col">
+
+  <header class="border-b border-ink-800 bg-ink-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 gap-4">
+      <div class="flex items-center gap-2 brand-mark text-lg shrink-0 whitespace-nowrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-brass shrink-0"><path d="M7 7h13M7 7l3.5-3.5M7 7l3.5 3.5M17 17H4M17 17l-3.5-3.5M17 17l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        M.Z Technologies
+      </div>
+      <nav id="tab-nav" class="hidden md:flex items-center gap-6 text-sm font-medium">
+        <button class="tab-btn active px-1 py-5" data-action="nav" data-view="dashboard" data-i18n="navDashboard">Dashboard</button>
+        <button class="tab-btn px-1 py-5" data-action="nav" data-view="history" data-i18n="navRateHistory">Rate History</button>
+        <button class="tab-btn px-1 py-5" data-action="nav" data-view="dayclose" data-admin-only="1" data-i18n="navDayClose">Day Close</button>
+        <button class="tab-btn px-1 py-5" data-action="nav" data-view="admin" data-admin-only="1" data-i18n="navAdmin">Admin</button>
+      </nav>
+      <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+        <div id="lang-toggle-header"></div>
+        <div id="clock" class="hidden sm:block font-mono text-xs text-paper-dim tabular-nums" dir="ltr"></div>
+        <div class="flex items-center gap-2 border-s border-ink-800 ps-3 sm:ps-4">
+          <div class="text-end hidden sm:block">
+            <div id="session-username" class="text-sm font-semibold leading-tight"></div>
+            <div id="session-role" class="badge badge-staff leading-tight inline-block mt-0.5"></div>
+          </div>
+          <button data-action="logout" class="btn btn-ghost rounded-lg px-3 py-1.5 text-xs" data-i18n="signOut">Sign Out</button>
+        </div>
+      </div>
+    </div>
+    <nav id="tab-nav-mobile" class="md:hidden flex items-center gap-4 text-xs font-medium px-4 overflow-x-auto border-t border-ink-800">
+      <button class="tab-btn active px-1 py-3 whitespace-nowrap" data-action="nav" data-view="dashboard" data-i18n="navDashboard">Dashboard</button>
+      <button class="tab-btn px-1 py-3 whitespace-nowrap" data-action="nav" data-view="history" data-i18n="navRateHistory">Rate History</button>
+      <button class="tab-btn px-1 py-3 whitespace-nowrap" data-action="nav" data-view="dayclose" data-admin-only="1" data-i18n="navDayClose">Day Close</button>
+      <button class="tab-btn px-1 py-3 whitespace-nowrap" data-action="nav" data-view="admin" data-admin-only="1" data-i18n="navAdmin">Admin</button>
+    </nav>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- ---- DASHBOARD ---- -->
+    <section id="view-dashboard">
+      <div id="rate-board-mount"></div>
+
+      <div id="stat-cards-mount" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 mt-5">
+        <div class="lg:col-span-2">
+          <div id="terminal-mount"></div>
+        </div>
+        <div class="lg:col-span-3">
+          <div class="panel rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="font-display text-lg" data-i18n="recentTransactions">Recent Transactions</h2>
+              <span id="txn-count-label" class="text-xs text-paper-dim"></span>
+            </div>
+            <div class="overflow-x-auto -mx-5 px-5">
+              <table class="ledger">
+                <thead>
+                  <tr>
+                    <th data-i18n="colTime">Time</th><th data-i18n="colType">Type</th><th class="num" data-i18n="colUsd">USD</th><th class="num" data-i18n="colRate">Rate</th><th class="num" data-i18n="colSyp">SYP</th><th class="num" data-i18n="colUsdBal">USD Bal.</th><th class="num" data-i18n="colSypBal">SYP Bal.</th><th data-i18n="colOperator">Operator</th><th data-i18n="colNote">Note</th><th id="txn-actions-header" data-admin-only="1" data-i18n="colActions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="txn-table-body"></tbody>
+              </table>
+              <div id="txn-empty" class="hidden text-center text-sm text-paper-dim py-10" data-i18n="noTransactionsYet">No transactions yet &mdash; execute a trade from the terminal.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- RATE HISTORY ---- -->
+    <section id="view-history" class="hidden">
+      <div class="panel rounded-xl p-5">
+        <h2 class="font-display text-lg mb-4" data-i18n="rateChangeHistory">Rate Change History</h2>
+        <div class="overflow-x-auto">
+          <table class="ledger">
+            <thead>
+              <tr><th data-i18n="colTime">Time</th><th class="num" data-i18n="colBuySyp">Buy (£S)</th><th class="num" data-i18n="colSellSyp">Sell (£S)</th><th data-i18n="colChangedBy">Changed By</th></tr>
+            </thead>
+            <tbody id="history-table-body"></tbody>
+          </table>
+          <div id="history-empty" class="hidden text-center text-sm text-paper-dim py-10" data-i18n="noRateChanges">No rate changes recorded yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- DAY CLOSE ---- -->
+    <section id="view-dayclose" class="hidden">
+      <div id="dayclose-mount" class="grid grid-cols-1 lg:grid-cols-2 gap-5"></div>
+
+      <div id="reserve-adjust-mount" class="mt-5"></div>
+
+      <div class="panel rounded-xl p-5 mt-5">
+        <h2 class="font-display text-lg mb-4" data-i18n="archivedDays">Archived Days</h2>
+        <div class="overflow-x-auto">
+          <table class="ledger">
+            <thead>
+              <tr><th data-i18n="colClosed">Closed</th><th class="num" data-i18n="colOpenUsd">Open USD</th><th class="num" data-i18n="colOpenSyp">Open SYP</th><th class="num" data-i18n="colCloseUsd">Close USD</th><th class="num" data-i18n="colCloseSyp">Close SYP</th><th class="num" data-i18n="colBuyVol">Buy Vol.</th><th class="num" data-i18n="colSellVol">Sell Vol.</th><th class="num" data-i18n="colTrades">Trades</th><th class="num" data-i18n="colProfit">Profit (£S)</th><th data-i18n="colClosedBy">Closed By</th></tr>
+            </thead>
+            <tbody id="dayhistory-table-body"></tbody>
+          </table>
+          <div id="dayhistory-empty" class="hidden text-center text-sm text-paper-dim py-10" data-i18n="noDaysClosedYet">No days closed yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- ADMIN ---- -->
+    <section id="view-admin" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-1">
+          <div class="panel rounded-xl p-5">
+            <h2 class="font-display text-lg mb-4" data-i18n="addStaffMember">Add Staff Member</h2>
+            <form id="create-user-form" data-form="create-user" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="usernameLabel">Username</label>
+                <input name="username" type="text" required minlength="3" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" placeholder="e.g. rana" data-i18n-placeholder="staffUsernamePlaceholder" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="passwordLabel">Password</label>
+                <input name="password" type="password" required minlength="4" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" placeholder="At least 4 characters" data-i18n-placeholder="passwordMinPlaceholder" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="roleLabel">Role</label>
+                <select name="role" class="field-input w-full rounded-lg px-3 py-2.5 text-sm">
+                  <option value="staff" data-i18n="staffOption">Staff</option>
+                  <option value="admin" data-i18n="adminOption">Admin</option>
+                </select>
+              </div>
+              <div id="create-user-error" class="hidden text-rose-bright text-xs bg-rose/10 border border-rose/30 rounded-lg px-3 py-2"></div>
+              <button type="submit" class="btn btn-brass w-full rounded-lg py-2.5 text-sm" data-i18n="createAccountBtn">Create Account</button>
+            </form>
+          </div>
+          <div class="panel rounded-xl p-5 mt-5">
+            <h2 class="font-display text-lg mb-4" data-i18n="loginActivity">Login Activity</h2>
+            <div id="login-log-mount" class="space-y-2 max-h-72 overflow-y-auto pe-1"></div>
+          </div>
+          <div class="panel rounded-xl p-5 mt-5 border-rose/30">
+            <h2 class="font-display text-lg mb-1 text-rose-bright" data-i18n="dangerZone">Danger Zone</h2>
+            <p class="text-xs text-paper-dim mb-4 leading-relaxed" data-i18n="dangerZoneDesc">Wipe all transactions, rate history, archived days, reserve adjustments, and login activity. Reserves and rates reset to their starting defaults. Staff accounts are kept &mdash; use this to start using the app fresh.</p>
+            <button data-action="factory-reset" class="btn btn-danger rounded-lg px-4 py-2.5 text-sm w-full" data-i18n="resetAllDataBtn">Reset All Data</button>
+          </div>
+        </div>
+        <div class="lg:col-span-2">
+          <div class="panel rounded-xl p-5">
+            <h2 class="font-display text-lg mb-4" data-i18n="staffAccounts">Staff Accounts</h2>
+            <div class="overflow-x-auto">
+              <table class="ledger">
+                <thead>
+                  <tr><th data-i18n="colUsername">Username</th><th data-i18n="colRole">Role</th><th data-i18n="colCreated">Created</th><th data-i18n="colLastLogin">Last Login</th><th data-i18n="colActions">Actions</th></tr>
+                </thead>
+                <tbody id="users-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-ink-800 py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 text-[11px] text-paper-dim flex items-center justify-between">
+      <span data-i18n="footerText">M.Z Technologies Exchange Desk &middot; local prototype, data stored in this browser only</span>
+      <span id="footer-day-started"></span>
+    </div>
+  </footer>
+</div>
+
+<div id="toast-container"></div>
+<div id="modal-root"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= constants ================= */
+  var DB_KEY = 'sarraf_exchange_db_v1';
+  var SESSION_KEY = 'sarraf_exchange_session_v1';
+  var LANG_KEY = 'sarraf_exchange_lang_v1';
+
+  /* ================= i18n ================= */
+  var I18N = {
+    en: {
+      tagline: 'USD · SYP Exchange Desk',
+      pageTitle: 'M.Z Technologies · Exchange Desk',
+      usernameLabel: 'Username', passwordLabel: 'Password',
+      loginUsernamePlaceholder: 'e.g. admin',
+      signIn: 'Sign In',
+      loginError: 'Incorrect username or password.',
+      navDashboard: 'Dashboard', navRateHistory: 'Rate History', navDayClose: 'Day Close', navAdmin: 'Admin',
+      signOut: 'Sign Out', roleAdmin: 'admin', roleStaff: 'staff',
+      rateBoardTitle: 'USD ⇆ SYP Rate Board',
+      lastUpdatedBy: 'Last updated {time} by {name}',
+      buyLabel: 'BUY', buySub: 'office buys USD from customer',
+      sellLabel: 'SELL', sellSub: 'office sells USD to customer',
+      newBuyRateLabel: 'New Buy Rate (£S)', newSellRateLabel: 'New Sell Rate (£S)',
+      updateRatesBtn: 'Update Rates',
+      rateErrorPositive: 'Both rates must be positive numbers.',
+      rateErrorSellLtBuy: 'Sell rate should not be lower than buy rate.',
+      rateUpdatedToast: 'Rates updated to {buy} / {sell}',
+      availableReserves: 'Available Reserves', usdWord: 'USD', sypWord: 'SYP',
+      dailyProfitLoss: 'Daily Profit / Loss', sinceLabel: 'since {time}',
+      realizedMarginNote: 'realized margin on sell trades',
+      todaysActivity: 'Today’s Activity', boughtLabel: 'Bought', soldLabel: 'Sold',
+      fastExchangeTerminal: 'Fast Exchange Terminal',
+      buyUsdBtn: 'Buy USD', sellUsdBtn: 'Sell USD',
+      buyDescription: 'Customer sells USD to the office · office pays out SYP.',
+      sellDescription: 'Customer buys USD from the office · office receives SYP.',
+      amountUsdLabel: 'Amount (USD)', noteOptionalLabel: 'Note (optional)',
+      notePlaceholder: 'Customer name / reference',
+      payCustomer: 'Pay customer', customerPays: 'Customer pays',
+      executeBtn: 'Execute Transaction', rateAppliedLabel: 'rate applied: {rate}',
+      terminalErrorAmount: 'Enter an amount greater than zero.',
+      terminalErrorSyp: 'Not enough SYP in reserve to complete this trade ({amount} needed).',
+      terminalErrorUsd: 'Not enough USD in reserve to complete this trade ({amount} needed).',
+      boughtToast: 'Bought {amount} at {rate}', soldToast: 'Sold {amount} at {rate}',
+      recentTransactions: 'Recent Transactions', totalCount: '{count} total',
+      colTime: 'Time', colType: 'Type', colUsd: 'USD', colRate: 'Rate', colSyp: 'SYP',
+      colUsdBal: 'USD Bal.', colSypBal: 'SYP Bal.', colOperator: 'Operator', colNote: 'Note', colActions: 'Actions',
+      noTransactionsYet: 'No transactions yet — execute a trade from the terminal.',
+      typeBuy: 'buy', typeSell: 'sell', editBtn: 'Edit', deleteBtn: 'Delete', lockedLabel: 'Locked',
+      editedTag: '(edited)', editedTooltip: 'Edited {time} by {name}',
+      rateChangeHistory: 'Rate Change History', colBuySyp: 'Buy (£S)', colSellSyp: 'Sell (£S)',
+      colChangedBy: 'Changed By', noRateChanges: 'No rate changes recorded yet.',
+      openingBalances: 'Opening Balances', startedLabel: 'Started {time} by {name}',
+      openingUsdLabel: 'Opening USD', openingSypLabel: 'Opening SYP',
+      openingHelpText: 'Resets today’s baseline & tracking window — use when starting a new day/shift after a full recount. For a quick cash top-up or withdrawal mid-day, use Adjust Reserves below instead.',
+      setOpeningBtn: 'Set Opening Balances',
+      endOfDaySummary: 'End-of-Day Summary',
+      rowOpeningUsd: 'Opening USD', rowCurrentUsd: 'Current USD', rowOpeningSyp: 'Opening SYP', rowCurrentSyp: 'Current SYP',
+      rowBuyVolume: 'Buy Volume (USD)', rowSellVolume: 'Sell Volume (USD)', rowTradesToday: 'Trades Today',
+      rowAdjUsd: 'Adjustments (USD)', rowAdjSyp: 'Adjustments (SYP)',
+      totalProfitLoss: 'Total Profit / Loss', closeDayBtn: 'Close Day & Start New',
+      enterValidAmounts: 'Enter valid non-negative amounts.',
+      setOpeningConfirmTitle: 'Set Opening Balances',
+      setOpeningConfirmBody: 'This sets today’s baseline to <b>{usd}</b> and <b>{syp}</b>, and also overwrites the current live reserves shown on the dashboard. Continue?',
+      setBalancesBtn: 'Set Balances', openingBalancesSetToast: 'Opening balances set.',
+      closeDayConfirmTitle: 'Close Day & Start New',
+      closeDayConfirmBody: 'This archives today’s summary ({count}, {profit}) and resets the daily baseline to the current reserves. This cannot be undone.',
+      closeDayConfirmBtn: 'Close Day', dayClosedToast: 'Day closed and archived.',
+      adjustReserves: 'Adjust Reserves',
+      adjustDescription: 'Add or remove cash on hand — e.g. topping up from the safe or pulling out for expenses. Does not affect today’s opening baseline.',
+      currencyUsd: 'USD', currencySyp: 'SYP', directionAdd: 'Add', directionRemove: 'Remove',
+      amountWithCurrency: 'Amount ({currency})', reasonOptionalLabel: 'Reason (optional)',
+      reasonPlaceholder: 'e.g. safe top-up, expenses',
+      addToReserveBtn: 'Add to Reserve', removeFromReserveBtn: 'Remove from Reserve',
+      todaysAdjustments: 'Today’s Adjustments', noAdjustmentsToday: 'No adjustments recorded today.',
+      noReasonGiven: 'No reason given',
+      adjErrorAmount: 'Enter an amount greater than zero.',
+      adjErrorInsufficient: 'Not enough {currency} in reserve to remove that much ({available} available).',
+      adjAddedToast: 'Added {amount} to reserves.', adjRemovedToast: 'Removed {amount} from reserves.',
+      archivedDays: 'Archived Days', colClosed: 'Closed', colOpenUsd: 'Open USD', colOpenSyp: 'Open SYP',
+      colCloseUsd: 'Close USD', colCloseSyp: 'Close SYP', colBuyVol: 'Buy Vol.', colSellVol: 'Sell Vol.',
+      colTrades: 'Trades', colProfit: 'Profit (£S)', colClosedBy: 'Closed By',
+      noDaysClosedYet: 'No days closed yet.',
+      addStaffMember: 'Add Staff Member', staffUsernamePlaceholder: 'e.g. rana',
+      passwordMinPlaceholder: 'At least 4 characters',
+      roleLabel: 'Role', staffOption: 'Staff', adminOption: 'Admin', createAccountBtn: 'Create Account',
+      usernameTooShort: 'Username must be at least 3 characters.',
+      usernameTaken: 'That username is already taken.',
+      passwordTooShort: 'Password must be at least 4 characters.',
+      accountCreatedToast: 'Account created for {username}.',
+      loginActivity: 'Login Activity', noLoginsYet: 'No logins recorded yet.',
+      dangerZone: 'Danger Zone',
+      dangerZoneDesc: 'Wipe all transactions, rate history, archived days, reserve adjustments, and login activity. Reserves and rates reset to their starting defaults. Staff accounts are kept — use this to start using the app fresh.',
+      resetAllDataBtn: 'Reset All Data', staffAccounts: 'Staff Accounts',
+      colUsername: 'Username', colRole: 'Role', colCreated: 'Created', colLastLogin: 'Last Login',
+      youTag: '(you)', makeStaffBtn: 'Make Staff', makeAdminBtn: 'Make Admin',
+      resetPasswordBtn: 'Reset Password', deleteAccountBtn: 'Delete',
+      cannotRemoveTitle: 'Cannot remove this account', atLeastOneAdminTitle: 'At least one admin required',
+      roleChangedToast: '{username} is now {role}.', atLeastOneAdminToast: 'At least one admin account is required.',
+      cannotDeleteSelfToast: 'You cannot delete your own account.',
+      removeStaffTitle: 'Remove Staff Account', removeStaffBody: 'Remove <b>{username}</b>? They will no longer be able to sign in.',
+      removeBtn: 'Remove', accountRemovedToast: 'Account removed.',
+      resetPasswordTitle: 'Reset Password', resetPasswordBody: 'Set a new password for <b>{username}</b>.',
+      newPasswordPlaceholder: 'New password', savePasswordBtn: 'Save Password',
+      passwordUpdatedToast: 'Password updated for {username}.',
+      editTransactionTitle: 'Edit Transaction', recordedByLabel: 'Recorded {time} by {name}',
+      rateAppliedFieldLabel: 'Rate Applied (£S)', noteLabel: 'Note',
+      saveChangesBtn: 'Save Changes', cancelBtn: 'Cancel',
+      editErrorAmountRate: 'Amount and rate must be greater than zero.',
+      editErrorNegative: 'This change would leave reserves negative — adjust the amount and try again.',
+      transactionUpdatedToast: 'Transaction updated and reserves recalculated.',
+      deleteTransactionTitle: 'Delete Transaction',
+      deleteTransactionBody: 'Remove this {type} trade of {amount} from {time}? Reserves will be recalculated automatically. This cannot be undone.',
+      deleteTransactionConfirmBtn: 'Delete Transaction',
+      cannotDeleteNegativeToast: 'Cannot delete: this would leave reserves negative.',
+      transactionDeletedToast: 'Transaction deleted and reserves recalculated.',
+      onlyTodayEditableToast: 'Only today’s transactions can be modified — closed days are locked.',
+      factoryResetTitle: 'Reset All Data',
+      factoryResetBody: 'This permanently deletes every transaction, rate change record, archived day, reserve adjustment, and login log entry. Reserves and rates reset to their starting defaults. Staff accounts and passwords are kept. This cannot be undone.',
+      typeResetLabel: 'Type RESET to confirm', eraseEverythingBtn: 'Erase Everything',
+      typeResetError: 'Type RESET (in capitals) to confirm.',
+      allDataResetToast: 'All data has been reset. Starting fresh.',
+      footerText: 'M.Z Technologies Exchange Desk · local prototype, data stored in this browser only',
+      dayStartedFooter: 'Day started {time}', confirmDefault: 'Confirm', cancelDefaultBtn: 'Cancel',
+    },
+    ar: {
+      tagline: 'مكتب الصرافة',
+      pageTitle: 'إم.زد تكنولوجيز · مكتب الصرافة',
+      usernameLabel: 'اسم المستخدم', passwordLabel: 'كلمة المرور',
+      loginUsernamePlaceholder: 'مثال: admin',
+      signIn: 'تسجيل الدخول',
+      loginError: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
+      navDashboard: 'لوحة التحكم', navRateHistory: 'سجل الأسعار', navDayClose: 'إغلاق اليوم', navAdmin: 'الإدارة',
+      signOut: 'تسجيل الخروج', roleAdmin: 'مسؤول', roleStaff: 'موظف',
+      rateBoardTitle: 'لوحة أسعار الدولار ⇆ الليرة',
+      lastUpdatedBy: 'آخر تحديث {time} بواسطة {name}',
+      buyLabel: 'شراء', buySub: 'المكتب يشتري الدولار من الزبون',
+      sellLabel: 'بيع', sellSub: 'المكتب يبيع الدولار للزبون',
+      newBuyRateLabel: 'سعر الشراء الجديد (ل.س)', newSellRateLabel: 'سعر البيع الجديد (ل.س)',
+      updateRatesBtn: 'تحديث الأسعار',
+      rateErrorPositive: 'يجب أن يكون كلا السعرين رقمًا موجبًا.',
+      rateErrorSellLtBuy: 'يجب ألا يكون سعر البيع أقل من سعر الشراء.',
+      rateUpdatedToast: 'تم تحديث الأسعار إلى {buy} / {sell}',
+      availableReserves: 'الاحتياطي المتاح', usdWord: 'دولار', sypWord: 'ليرة',
+      dailyProfitLoss: 'الربح / الخسارة اليومي', sinceLabel: 'منذ {time}',
+      realizedMarginNote: 'الهامش المحقق من صفقات البيع',
+      todaysActivity: 'نشاط اليوم', boughtLabel: 'تم الشراء', soldLabel: 'تم البيع',
+      fastExchangeTerminal: 'شاشة الصرافة السريعة',
+      buyUsdBtn: 'شراء دولار', sellUsdBtn: 'بيع دولار',
+      buyDescription: 'الزبون يبيع الدولار للمكتب · المكتب يدفع ليرة سورية.',
+      sellDescription: 'الزبون يشتري الدولار من المكتب · المكتب يستلم ليرة سورية.',
+      amountUsdLabel: 'المبلغ (دولار أمريكي)', noteOptionalLabel: 'ملاحظة (اختياري)',
+      notePlaceholder: 'اسم الزبون / مرجع',
+      payCustomer: 'يُدفع للزبون', customerPays: 'يدفع الزبون',
+      executeBtn: 'تنفيذ الصفقة', rateAppliedLabel: 'السعر المطبق: {rate}',
+      terminalErrorAmount: 'أدخل مبلغًا أكبر من الصفر.',
+      terminalErrorSyp: 'لا يوجد رصيد كافٍ من الليرة السورية لإتمام هذه الصفقة ({amount} مطلوب).',
+      terminalErrorUsd: 'لا يوجد رصيد كافٍ من الدولار لإتمام هذه الصفقة ({amount} مطلوب).',
+      boughtToast: 'تم شراء {amount} بسعر {rate}', soldToast: 'تم بيع {amount} بسعر {rate}',
+      recentTransactions: 'المعاملات الأخيرة', totalCount: 'الإجمالي: {count}',
+      colTime: 'الوقت', colType: 'النوع', colUsd: 'دولار', colRate: 'السعر', colSyp: 'ليرة',
+      colUsdBal: 'رصيد الدولار', colSypBal: 'رصيد الليرة', colOperator: 'الموظف', colNote: 'ملاحظة', colActions: 'إجراءات',
+      noTransactionsYet: 'لا توجد معاملات بعد — نفّذ صفقة من شاشة الصرافة.',
+      typeBuy: 'شراء', typeSell: 'بيع', editBtn: 'تعديل', deleteBtn: 'حذف', lockedLabel: 'مقفل',
+      editedTag: '(مُعدلة)', editedTooltip: 'عُدلت {time} بواسطة {name}',
+      rateChangeHistory: 'سجل تغييرات السعر', colBuySyp: 'الشراء (ل.س)', colSellSyp: 'البيع (ل.س)',
+      colChangedBy: 'عدلها', noRateChanges: 'لم يتم تسجيل أي تغييرات في الأسعار بعد.',
+      openingBalances: 'الأرصدة الافتتاحية', startedLabel: 'بدأ في {time} بواسطة {name}',
+      openingUsdLabel: 'الدولار الافتتاحي', openingSypLabel: 'الليرة الافتتاحية',
+      openingHelpText: 'يُعيد ضبط أساس اليوم ونافذة التتبع — استخدمه عند بدء يوم/وردية جديدة بعد جرد كامل. لإضافة أو سحب نقدي سريع خلال اليوم، استخدم تعديل الاحتياطي أدناه بدلاً من ذلك.',
+      setOpeningBtn: 'ضبط الأرصدة الافتتاحية',
+      endOfDaySummary: 'ملخص نهاية اليوم',
+      rowOpeningUsd: 'الدولار الافتتاحي', rowCurrentUsd: 'الدولار الحالي', rowOpeningSyp: 'الليرة الافتتاحية', rowCurrentSyp: 'الليرة الحالية',
+      rowBuyVolume: 'حجم الشراء (دولار)', rowSellVolume: 'حجم البيع (دولار)', rowTradesToday: 'صفقات اليوم',
+      rowAdjUsd: 'تعديلات (دولار)', rowAdjSyp: 'تعديلات (ليرة)',
+      totalProfitLoss: 'إجمالي الربح / الخسارة', closeDayBtn: 'إغلاق اليوم وبدء يوم جديد',
+      enterValidAmounts: 'أدخل مبالغ صحيحة غير سالبة.',
+      setOpeningConfirmTitle: 'ضبط الأرصدة الافتتاحية',
+      setOpeningConfirmBody: 'سيتم ضبط أساس اليوم على <b>{usd}</b> و <b>{syp}</b>، كما سيتم استبدال الاحتياطي الحالي المعروض في اللوحة الرئيسية. متابعة؟',
+      setBalancesBtn: 'ضبط الأرصدة', openingBalancesSetToast: 'تم ضبط الأرصدة الافتتاحية.',
+      closeDayConfirmTitle: 'إغلاق اليوم وبدء يوم جديد',
+      closeDayConfirmBody: 'سيتم أرشفة ملخص اليوم ({count}، {profit}) وإعادة ضبط أساس اليوم على الاحتياطي الحالي. لا يمكن التراجع عن هذا الإجراء.',
+      closeDayConfirmBtn: 'إغلاق اليوم', dayClosedToast: 'تم إغلاق اليوم وأرشفته.',
+      adjustReserves: 'تعديل الاحتياطي',
+      adjustDescription: 'أضف أو اسحب نقدًا من المتوفر — مثل التزود من الخزنة أو السحب لتغطية مصاريف. لا يؤثر على الرصيد الافتتاحي لليوم.',
+      currencyUsd: 'دولار', currencySyp: 'ليرة', directionAdd: 'إضافة', directionRemove: 'سحب',
+      amountWithCurrency: 'المبلغ ({currency})', reasonOptionalLabel: 'السبب (اختياري)',
+      reasonPlaceholder: 'مثال: تزويد من الخزنة، مصاريف',
+      addToReserveBtn: 'إضافة إلى الاحتياطي', removeFromReserveBtn: 'سحب من الاحتياطي',
+      todaysAdjustments: 'تعديلات اليوم', noAdjustmentsToday: 'لا توجد تعديلات مسجلة اليوم.',
+      noReasonGiven: 'لم يُذكر سبب',
+      adjErrorAmount: 'أدخل مبلغًا أكبر من الصفر.',
+      adjErrorInsufficient: 'لا يوجد رصيد كافٍ من {currency} للسحب بهذا المقدار ({available} متاح).',
+      adjAddedToast: 'تمت إضافة {amount} إلى الاحتياطي.', adjRemovedToast: 'تم سحب {amount} من الاحتياطي.',
+      archivedDays: 'الأيام المؤرشفة', colClosed: 'تاريخ الإغلاق', colOpenUsd: 'دولار الافتتاح', colOpenSyp: 'ليرة الافتتاح',
+      colCloseUsd: 'دولار الإغلاق', colCloseSyp: 'ليرة الإغلاق', colBuyVol: 'حجم الشراء', colSellVol: 'حجم البيع',
+      colTrades: 'الصفقات', colProfit: 'الربح (ل.س)', colClosedBy: 'أغلقها',
+      noDaysClosedYet: 'لم يتم إغلاق أي يوم بعد.',
+      addStaffMember: 'إضافة موظف', staffUsernamePlaceholder: 'مثال: rana',
+      passwordMinPlaceholder: '4 أحرف على الأقل',
+      roleLabel: 'الصلاحية', staffOption: 'موظف', adminOption: 'مسؤول', createAccountBtn: 'إنشاء حساب',
+      usernameTooShort: 'يجب أن يتكون اسم المستخدم من 3 أحرف على الأقل.',
+      usernameTaken: 'اسم المستخدم هذا مستخدم بالفعل.',
+      passwordTooShort: 'يجب أن تتكون كلمة المرور من 4 أحرف على الأقل.',
+      accountCreatedToast: 'تم إنشاء حساب لـ {username}.',
+      loginActivity: 'سجل تسجيل الدخول', noLoginsYet: 'لم يتم تسجيل أي دخول بعد.',
+      dangerZone: 'منطقة الخطر',
+      dangerZoneDesc: 'حذف جميع المعاملات وسجل الأسعار والأيام المؤرشفة وتعديلات الاحتياطي وسجل الدخول. تُعاد ضبط الاحتياطي والأسعار إلى قيمها الافتراضية. تبقى حسابات الموظفين كما هي — استخدم هذا لبدء استخدام التطبيق من جديد.',
+      resetAllDataBtn: 'إعادة تعيين كل البيانات', staffAccounts: 'حسابات الموظفين',
+      colUsername: 'اسم المستخدم', colRole: 'الصلاحية', colCreated: 'تاريخ الإنشاء', colLastLogin: 'آخر دخول',
+      youTag: '(أنت)', makeStaffBtn: 'تحويل إلى موظف', makeAdminBtn: 'تحويل إلى مسؤول',
+      resetPasswordBtn: 'إعادة تعيين كلمة المرور', deleteAccountBtn: 'حذف',
+      cannotRemoveTitle: 'لا يمكن حذف هذا الحساب', atLeastOneAdminTitle: 'يجب وجود مسؤول واحد على الأقل',
+      roleChangedToast: 'أصبح {username} الآن {role}.', atLeastOneAdminToast: 'يجب وجود حساب مسؤول واحد على الأقل.',
+      cannotDeleteSelfToast: 'لا يمكنك حذف حسابك الخاص.',
+      removeStaffTitle: 'إزالة حساب الموظف', removeStaffBody: 'إزالة <b>{username}</b>؟ لن يتمكن بعد الآن من تسجيل الدخول.',
+      removeBtn: 'إزالة', accountRemovedToast: 'تم حذف الحساب.',
+      resetPasswordTitle: 'إعادة تعيين كلمة المرور', resetPasswordBody: 'عيّن كلمة مرور جديدة لـ <b>{username}</b>.',
+      newPasswordPlaceholder: 'كلمة مرور جديدة', savePasswordBtn: 'حفظ كلمة المرور',
+      passwordUpdatedToast: 'تم تحديث كلمة المرور لـ {username}.',
+      editTransactionTitle: 'تعديل المعاملة', recordedByLabel: 'سُجلت في {time} بواسطة {name}',
+      rateAppliedFieldLabel: 'السعر المطبق (ل.س)', noteLabel: 'ملاحظة',
+      saveChangesBtn: 'حفظ التغييرات', cancelBtn: 'إلغاء',
+      editErrorAmountRate: 'يجب أن يكون المبلغ والسعر أكبر من الصفر.',
+      editErrorNegative: 'هذا التغيير سيجعل الاحتياطي بالسالب — عدّل المبلغ وحاول مجددًا.',
+      transactionUpdatedToast: 'تم تحديث المعاملة وإعادة احتساب الاحتياطي.',
+      deleteTransactionTitle: 'حذف المعاملة',
+      deleteTransactionBody: 'حذف صفقة {type} بقيمة {amount} من {time}؟ سيُعاد احتساب الاحتياطي تلقائيًا. لا يمكن التراجع عن هذا.',
+      deleteTransactionConfirmBtn: 'حذف المعاملة',
+      cannotDeleteNegativeToast: 'لا يمكن الحذف: سيؤدي ذلك إلى رصيد سالب.',
+      transactionDeletedToast: 'تم حذف المعاملة وإعادة احتساب الاحتياطي.',
+      onlyTodayEditableToast: 'يمكن تعديل معاملات اليوم فقط — الأيام المغلقة مقفلة.',
+      factoryResetTitle: 'إعادة تعيين كل البيانات',
+      factoryResetBody: 'سيؤدي هذا إلى حذف كل معاملة وسجل تغيير سعر ويوم مؤرشف وتعديل احتياطي وسجل دخول بشكل نهائي. تُعاد ضبط الاحتياطي والأسعار إلى قيمها الافتراضية. تبقى حسابات الموظفين وكلمات المرور كما هي. لا يمكن التراجع عن هذا الإجراء.',
+      typeResetLabel: 'اكتب RESET للتأكيد', eraseEverythingBtn: 'حذف كل شيء',
+      typeResetError: 'اكتب RESET (بأحرف كبيرة) للتأكيد.',
+      allDataResetToast: 'تمت إعادة تعيين جميع البيانات. البداية من جديد.',
+      footerText: 'مكتب إم.زد تكنولوجيز للصرافة · نسخة تجريبية محلية، البيانات محفوظة في هذا المتصفح فقط',
+      dayStartedFooter: 'بدأ اليوم في {time}', confirmDefault: 'تأكيد', cancelDefaultBtn: 'إلغاء',
+    },
+  };
+
+  var lang = localStorage.getItem(LANG_KEY) || 'en';
+
+  function t(key, params) {
+    var dict = I18N[lang] || I18N.en;
+    var str = dict[key] != null ? dict[key] : (I18N.en[key] != null ? I18N.en[key] : key);
+    if (params) {
+      Object.keys(params).forEach(function (k) {
+        str = str.split('{' + k + '}').join(params[k]);
+      });
+    }
+    return str;
+  }
+
+  function tradeCountLabel(n) {
+    if (lang !== 'ar') return n + ' trade' + (n === 1 ? '' : 's');
+    if (n === 0) return 'لا توجد صفقات';
+    if (n === 1) return 'صفقة واحدة';
+    if (n === 2) return 'صفقتان';
+    if (n >= 3 && n <= 10) return n + ' صفقات';
+    return n + ' صفقة';
+  }
+
+  function applyStaticI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
+    document.title = t('pageTitle');
+  }
+
+  function renderLangToggle() {
+    var html =
+      '<div class="flex items-center gap-1 rounded-lg border border-ink-800 p-0.5 text-xs font-semibold">' +
+        '<button type="button" data-action="set-lang" data-lang="en" class="lang-btn px-2.5 py-1 rounded-md' + (lang === 'en' ? ' active' : '') + '">EN</button>' +
+        '<button type="button" data-action="set-lang" data-lang="ar" class="lang-btn px-2.5 py-1 rounded-md' + (lang === 'ar' ? ' active' : '') + '">AR</button>' +
+      '</div>';
+    ['lang-toggle-login', 'lang-toggle-header'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    });
+  }
+
+  function setLang(newLang) {
+    if (newLang !== 'en' && newLang !== 'ar') return;
+    lang = newLang;
+    localStorage.setItem(LANG_KEY, lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    applyStaticI18n();
+    renderLangToggle();
+    if (session) renderAll();
+  }
+
+  /* ================= utilities ================= */
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 9); }
+  function nowIso() { return new Date().toISOString(); }
+  function clamp0(n) { return n < 0 ? 0 : n; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+
+  function fmtUsd(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function fmtSyp(n) { return '£S ' + Math.round(Number(n)).toLocaleString('en-US'); }
+  function fmtSypSigned(n) {
+    var v = Math.round(Number(n));
+    var sign = v > 0 ? '+' : (v < 0 ? '−' : '');
+    return sign + '£S ' + Math.abs(v).toLocaleString('en-US');
+  }
+  function fmtUsdSigned(n) {
+    var v = Number(n);
+    var sign = v > 0 ? '+' : (v < 0 ? '−' : '');
+    return sign + '$' + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function fmtRate(n) { return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function fmtDateTime(iso) { var d = new Date(iso); return d.toLocaleString('en-US', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }); }
+  function fmtTime(iso) { var d = new Date(iso); return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+
+  async function hashPassword(pw) {
+    var enc = new TextEncoder().encode('sarraf::' + pw);
+    var buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  /* ================= state ================= */
+  var state = null;
+  var session = null;
+  var activeView = 'dashboard';
+  var txnType = 'buy';
+  var adjustCurrency = 'usd';
+  var adjustDirection = 'add';
+
+  function defaultState() {
+    var t = nowIso();
+    return {
+      users: [],
+      loginLog: [],
+      rates: { buy: 14850, sell: 15050, updatedAt: t, updatedBy: 'system' },
+      rateHistory: [],
+      reserves: { usd: 5000, syp: 60000000 },
+      dayStart: { usd: 5000, syp: 60000000, startedAt: t, startedBy: 'system' },
+      transactions: [],
+      dayHistory: [],
+      adjustments: [],
+    };
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(DB_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed.users) parsed.users = [];
+      if (!parsed.loginLog) parsed.loginLog = [];
+      if (!parsed.rateHistory) parsed.rateHistory = [];
+      if (!parsed.transactions) parsed.transactions = [];
+      if (!parsed.dayHistory) parsed.dayHistory = [];
+      if (!parsed.adjustments) parsed.adjustments = [];
+      return parsed;
+    } catch (e) { return null; }
+  }
+
+  function persist() { localStorage.setItem(DB_KEY, JSON.stringify(state)); }
+
+  function loadSession() {
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY) || 'null'); }
+    catch (e) { return null; }
+  }
+  function saveSession() { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
+  function clearSession() { session = null; localStorage.removeItem(SESSION_KEY); }
+
+  async function ensureSeedAdmin() {
+    if (state.users.length === 0) {
+      var hash = await hashPassword('admin123');
+      state.users.push({ id: uid(), username: 'admin', passwordHash: hash, role: 'admin', createdAt: nowIso(), lastLoginAt: null });
+      persist();
+    }
+  }
+
+  /* ================= toasts & modals ================= */
+  function toast(message, type) {
+    type = type || 'success';
+    var container = document.getElementById('toast-container');
+    var el = document.createElement('div');
+    var tone = type === 'error'
+      ? 'bg-rose/15 border-rose/40 text-rose-bright'
+      : 'bg-teal/15 border-teal/40 text-teal-bright';
+    el.className = 'toast panel-raised border rounded-lg px-4 py-3 text-sm shadow-xl ' + tone;
+    el.textContent = message;
+    container.appendChild(el);
+    setTimeout(function () {
+      el.classList.add('out');
+      setTimeout(function () { el.remove(); }, 200);
+    }, 3200);
+  }
+
+  function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+
+  function confirmModal(opts) {
+    var root = document.getElementById('modal-root');
+    var danger = !!opts.danger;
+    root.innerHTML =
+      '<div class="modal-backdrop" data-action="modal-backdrop">' +
+        '<div class="modal-card panel-raised rounded-xl p-6 max-w-sm w-full" role="dialog" aria-modal="true">' +
+          '<h3 class="font-display text-lg mb-2">' + esc(opts.title) + '</h3>' +
+          '<p class="text-sm text-paper-dim mb-5 leading-relaxed">' + opts.body + '</p>' +
+          '<div class="flex justify-end gap-2">' +
+            '<button class="btn btn-ghost rounded-lg px-4 py-2 text-sm" data-action="modal-cancel">' + esc(t('cancelDefaultBtn')) + '</button>' +
+            '<button class="btn ' + (danger ? 'btn-danger' : 'btn-brass') + ' rounded-lg px-4 py-2 text-sm" data-action="modal-confirm">' + esc(opts.confirmLabel || t('confirmDefault')) + '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    root.querySelector('[data-action="modal-confirm"]').addEventListener('click', function () { closeModal(); opts.onConfirm && opts.onConfirm(); });
+    root.querySelector('[data-action="modal-cancel"]').addEventListener('click', closeModal);
+    root.querySelector('[data-action="modal-backdrop"]').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModal(); });
+  }
+
+  /* ================= derived data ================= */
+  function todaysTxns() {
+    var start = state.dayStart.startedAt;
+    return state.transactions.filter(function (t) { return t.at >= start; });
+  }
+
+  function todaysAdjustments() {
+    var start = state.dayStart.startedAt;
+    return state.adjustments.filter(function (a) { return a.at >= start; });
+  }
+
+  function computeAdjustmentTotals(adjustments) {
+    var usd = 0, syp = 0;
+    adjustments.forEach(function (a) {
+      var signed = a.direction === 'add' ? a.amount : -a.amount;
+      if (a.currency === 'usd') usd += signed; else syp += signed;
+    });
+    return { usd: usd, syp: syp };
+  }
+
+  function computeDayStats(txns) {
+    var buyVolume = 0, sellVolume = 0, profit = 0;
+    txns.forEach(function (t) {
+      if (t.type === 'buy') buyVolume += t.amountUsd;
+      else {
+        sellVolume += t.amountUsd;
+        profit += (t.sellRateAtTime - t.buyRateAtTime) * t.amountUsd;
+      }
+    });
+    return { buyVolume: buyVolume, sellVolume: sellVolume, profit: profit, count: txns.length };
+  }
+
+  function isEditableTxn(t) { return t.at >= state.dayStart.startedAt; }
+
+  function recalcTodayLedger() {
+    var start = state.dayStart.startedAt;
+    var events = [];
+    state.transactions.forEach(function (t) { if (t.at >= start) events.push({ at: t.at, kind: 'txn', ref: t }); });
+    state.adjustments.forEach(function (a) { if (a.at >= start) events.push({ at: a.at, kind: 'adj', ref: a }); });
+    events.sort(function (a, b) { return a.at < b.at ? -1 : (a.at > b.at ? 1 : 0); });
+
+    var usd = state.dayStart.usd, syp = state.dayStart.syp;
+    events.forEach(function (e) {
+      if (e.kind === 'txn') {
+        var t = e.ref;
+        if (t.type === 'buy') { usd += t.amountUsd; syp -= t.amountSyp; }
+        else { usd -= t.amountUsd; syp += t.amountSyp; }
+        usd = Number(usd.toFixed(2));
+        syp = Number(syp.toFixed(2));
+        t.usdAfter = usd;
+        t.sypAfter = syp;
+      } else {
+        var a = e.ref;
+        var signed = a.direction === 'add' ? a.amount : -a.amount;
+        if (a.currency === 'usd') usd = Number((usd + signed).toFixed(2));
+        else syp = Number((syp + signed).toFixed(2));
+      }
+    });
+    state.reserves.usd = usd;
+    state.reserves.syp = syp;
+  }
+
+  function applyLedgerChange(mutateFn) {
+    var snapshot = JSON.stringify({
+      transactions: state.transactions, adjustments: state.adjustments,
+      reserves: state.reserves, dayStart: state.dayStart,
+    });
+    mutateFn();
+    recalcTodayLedger();
+    if (state.reserves.usd < -0.005 || state.reserves.syp < -0.5) {
+      var restored = JSON.parse(snapshot);
+      state.transactions = restored.transactions;
+      state.adjustments = restored.adjustments;
+      state.reserves = restored.reserves;
+      state.dayStart = restored.dayStart;
+      return false;
+    }
+    return true;
+  }
+
+  /* ================= render: shell ================= */
+  function renderSessionBadges() {
+    document.getElementById('session-username').textContent = session.username;
+    var roleEl = document.getElementById('session-role');
+    roleEl.textContent = session.role === 'admin' ? t('roleAdmin') : t('roleStaff');
+    roleEl.className = 'badge leading-tight inline-block mt-0.5 ' + (session.role === 'admin' ? 'badge-admin' : 'badge-staff');
+    var adminOnly = document.querySelectorAll('[data-admin-only]');
+    adminOnly.forEach(function (el) { el.classList.toggle('hidden', session.role !== 'admin'); });
+  }
+
+  function setActiveView(view) {
+    if (view === 'admin' || view === 'dayclose') {
+      if (session.role !== 'admin') view = 'dashboard';
+    }
+    activeView = view;
+    ['dashboard', 'history', 'dayclose', 'admin'].forEach(function (v) {
+      document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
+    });
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+  }
+
+  function tickClock() {
+    var el = document.getElementById('clock');
+    if (el) el.textContent = new Date().toLocaleString('en-US', { weekday: 'short', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  /* ================= render: rate board ================= */
+  var lastRatesSignature = null;
+  function renderRateBoard() {
+    var r = state.rates;
+    var sig = r.buy + '|' + r.sell;
+    var mount = document.getElementById('rate-board-mount');
+    mount.innerHTML =
+      '<div class="rate-board rounded-2xl p-5 sm:p-6">' +
+        '<div class="flex flex-wrap items-center justify-between gap-3 mb-5">' +
+          '<div class="flex items-center gap-2 text-paper-dim text-xs uppercase tracking-[0.2em]">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="text-brass"><path d="M7 7h13M7 7l3.5-3.5M7 7l3.5 3.5M17 17H4M17 17l-3.5-3.5M17 17l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+            esc(t('rateBoardTitle')) +
+          '</div>' +
+          '<div class="text-xs text-paper-dim">' + t('lastUpdatedBy', { time: fmtDateTime(r.updatedAt), name: '<span class="text-paper">' + esc(r.updatedBy) + '</span>' }) + '</div>' +
+        '</div>' +
+        '<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">' +
+          rateFlap(t('buyLabel'), t('buySub'), r.buy, 'brass') +
+          rateFlap(t('sellLabel'), t('sellSub'), r.sell, 'teal') +
+        '</div>' +
+        '<form id="rate-form" data-form="update-rates" class="flex flex-wrap items-end gap-3 mt-5 pt-5 border-t border-ink-800">' +
+          '<div>' +
+            '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('newBuyRateLabel')) + '</label>' +
+            '<input name="buy" type="number" step="0.01" min="0" value="' + r.buy + '" dir="ltr" class="field-input rounded-lg px-3 py-2 text-sm w-40 font-mono" />' +
+          '</div>' +
+          '<div>' +
+            '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('newSellRateLabel')) + '</label>' +
+            '<input name="sell" type="number" step="0.01" min="0" value="' + r.sell + '" dir="ltr" class="field-input rounded-lg px-3 py-2 text-sm w-40 font-mono" />' +
+          '</div>' +
+          '<button type="submit" class="btn btn-brass rounded-lg px-5 py-2 text-sm">' + esc(t('updateRatesBtn')) + '</button>' +
+          '<span id="rate-form-error" class="hidden text-rose-bright text-xs"></span>' +
+        '</form>' +
+      '</div>';
+
+    if (lastRatesSignature !== null && lastRatesSignature !== sig) {
+      var digitsEls = mount.querySelectorAll('.rate-digits');
+      digitsEls.forEach(function (el) { el.classList.add('flap-update'); });
+    }
+    lastRatesSignature = sig;
+  }
+
+  function rateFlap(label, sub, value, tone) {
+    var textClass = tone === 'brass' ? 'text-brass-bright' : 'text-teal-bright';
+    return (
+      '<div class="flap-panel px-5 py-4">' +
+        '<div class="flex items-baseline justify-between mb-1">' +
+          '<span class="text-xs font-bold uppercase tracking-[0.15em] ' + (tone === 'brass' ? 'text-brass' : 'text-teal') + '">' + esc(label) + '</span>' +
+          '<span class="text-[10px] text-paper-dim">' + esc(sub) + '</span>' +
+        '</div>' +
+        '<div class="rate-digits ' + textClass + ' text-3xl sm:text-4xl">' + fmtRate(value) + '</div>' +
+      '</div>'
+    );
+  }
+
+  /* ================= render: stat cards ================= */
+  function renderStatCards() {
+    var txns = todaysTxns();
+    var stats = computeDayStats(txns);
+    var mount = document.getElementById('stat-cards-mount');
+    var profitTone = stats.profit > 0 ? 'text-teal-bright' : (stats.profit < 0 ? 'text-rose-bright' : 'text-paper');
+
+    mount.innerHTML =
+      statCard(t('availableReserves'), '',
+        '<div class="space-y-2">' +
+          '<div class="flex items-baseline justify-between"><span class="text-xs text-paper-dim">' + esc(t('usdWord')) + '</span><span class="font-mono text-xl font-tabular text-brass-bright" dir="ltr">' + fmtUsd(state.reserves.usd) + '</span></div>' +
+          '<div class="flex items-baseline justify-between"><span class="text-xs text-paper-dim">' + esc(t('sypWord')) + '</span><span class="font-mono text-xl font-tabular text-teal-bright" dir="ltr">' + fmtSyp(state.reserves.syp) + '</span></div>' +
+        '</div>') +
+      statCard(t('dailyProfitLoss'), t('sinceLabel', { time: fmtDateTime(state.dayStart.startedAt) }),
+        '<div class="font-mono text-3xl font-tabular ' + profitTone + '" dir="ltr">' + fmtSypSigned(stats.profit) + '</div>' +
+        '<div class="text-xs text-paper-dim mt-1">' + esc(t('realizedMarginNote')) + '</div>') +
+      statCard(t('todaysActivity'), tradeCountLabel(stats.count),
+        '<div class="space-y-2">' +
+          '<div class="flex items-baseline justify-between"><span class="text-xs text-paper-dim">' + esc(t('boughtLabel')) + '</span><span class="font-mono text-sm font-tabular text-brass-bright" dir="ltr">' + fmtUsd(stats.buyVolume) + '</span></div>' +
+          '<div class="flex items-baseline justify-between"><span class="text-xs text-paper-dim">' + esc(t('soldLabel')) + '</span><span class="font-mono text-sm font-tabular text-teal-bright" dir="ltr">' + fmtUsd(stats.sellVolume) + '</span></div>' +
+        '</div>');
+  }
+
+  function statCard(title, meta, body) {
+    return (
+      '<div class="panel rounded-xl p-5">' +
+        '<div class="flex items-baseline justify-between mb-3">' +
+          '<h3 class="text-xs font-semibold uppercase tracking-wide text-paper-dim">' + esc(title) + '</h3>' +
+          (meta ? '<span class="text-[11px] text-paper-dim">' + esc(meta) + '</span>' : '') +
+        '</div>' +
+        body +
+      '</div>'
+    );
+  }
+
+  /* ================= render: terminal ================= */
+  function renderTerminal() {
+    var mount = document.getElementById('terminal-mount');
+    var rate = txnType === 'buy' ? state.rates.buy : state.rates.sell;
+    mount.innerHTML =
+      '<div class="panel rounded-xl p-5">' +
+        '<h2 class="font-display text-lg mb-4">' + esc(t('fastExchangeTerminal')) + '</h2>' +
+        '<div class="grid grid-cols-2 gap-2 mb-4">' +
+          '<button type="button" class="type-toggle rounded-lg py-2.5 text-sm font-semibold ' + (txnType === 'buy' ? 'active-buy' : '') + '" data-action="set-txn-type" data-type="buy">' + esc(t('buyUsdBtn')) + '</button>' +
+          '<button type="button" class="type-toggle rounded-lg py-2.5 text-sm font-semibold ' + (txnType === 'sell' ? 'active-sell' : '') + '" data-action="set-txn-type" data-type="sell">' + esc(t('sellUsdBtn')) + '</button>' +
+        '</div>' +
+        '<p class="text-xs text-paper-dim mb-4 leading-relaxed">' + esc(txnType === 'buy' ? t('buyDescription') : t('sellDescription')) + '</p>' +
+        '<form id="terminal-form" data-form="execute-txn">' +
+          '<label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('amountUsdLabel')) + '</label>' +
+          '<input id="txn-amount" name="amount" type="number" min="0" step="0.01" required placeholder="0.00" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono mb-3" />' +
+          '<label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('noteOptionalLabel')) + '</label>' +
+          '<input id="txn-note" name="note" type="text" maxlength="60" placeholder="' + esc(t('notePlaceholder')) + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm mb-4" />' +
+          '<div class="panel-raised rounded-lg px-4 py-3 mb-4 flex items-center justify-between">' +
+            '<span class="text-xs text-paper-dim">' + esc(txnType === 'buy' ? t('payCustomer') : t('customerPays')) + '</span>' +
+            '<span id="txn-computed" class="font-mono text-lg font-tabular ' + (txnType === 'buy' ? 'text-brass-bright' : 'text-teal-bright') + '" dir="ltr">£S 0</span>' +
+          '</div>' +
+          '<div id="terminal-error" class="hidden text-rose-bright text-xs bg-rose/10 border border-rose/30 rounded-lg px-3 py-2 mb-4"></div>' +
+          '<button type="submit" class="btn ' + (txnType === 'buy' ? 'btn-brass' : 'btn-teal') + ' w-full rounded-lg py-3 text-sm">' + esc(t('executeBtn')) + '</button>' +
+        '</form>' +
+        '<p class="text-[11px] text-paper-dim mt-3 text-center font-mono" dir="ltr">' + t('rateAppliedLabel', { rate: fmtRate(rate) }) + '</p>' +
+      '</div>';
+
+    var amountInput = document.getElementById('txn-amount');
+    amountInput.addEventListener('input', updateTerminalPreview);
+    updateTerminalPreview();
+  }
+
+  function updateTerminalPreview() {
+    var amountInput = document.getElementById('txn-amount');
+    var computed = document.getElementById('txn-computed');
+    if (!amountInput || !computed) return;
+    var amount = parseFloat(amountInput.value) || 0;
+    var rate = txnType === 'buy' ? state.rates.buy : state.rates.sell;
+    computed.textContent = fmtSyp(amount * rate);
+  }
+
+  /* ================= render: transactions table ================= */
+  function renderTxnTable() {
+    var body = document.getElementById('txn-table-body');
+    var empty = document.getElementById('txn-empty');
+    var list = state.transactions.slice(0, 25);
+    document.getElementById('txn-count-label').textContent = t('totalCount', { count: state.transactions.length });
+    if (list.length === 0) {
+      body.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    var isAdmin = session.role === 'admin';
+    body.innerHTML = list.map(function (t2) {
+      var editedTag = t2.editedAt ? ' <span class="text-paper-dim text-[10px]" title="' + esc(t('editedTooltip', { time: fmtDateTime(t2.editedAt), name: t2.editedBy })) + '">' + esc(t('editedTag')) + '</span>' : '';
+      var actionsCell = '';
+      if (isAdmin) {
+        actionsCell = isEditableTxn(t2)
+          ? '<td><div class="flex items-center gap-1.5"><button class="btn btn-ghost rounded px-2.5 py-1 text-[11px]" data-action="edit-txn" data-id="' + t2.id + '">' + esc(t('editBtn')) + '</button><button class="btn btn-danger rounded px-2.5 py-1 text-[11px]" data-action="delete-txn" data-id="' + t2.id + '">' + esc(t('deleteBtn')) + '</button></div></td>'
+          : '<td><span class="text-paper-dim text-[11px]">' + esc(t('lockedLabel')) + '</span></td>';
+      }
+      return (
+        '<tr>' +
+          '<td dir="ltr">' + fmtTime(t2.at) + editedTag + '</td>' +
+          '<td><span class="badge ' + (t2.type === 'buy' ? 'badge-buy' : 'badge-sell') + '">' + esc(t2.type === 'buy' ? t('typeBuy') : t('typeSell')) + '</span></td>' +
+          '<td class="num text-brass-bright">' + fmtUsd(t2.amountUsd) + '</td>' +
+          '<td class="num">' + fmtRate(t2.rateApplied) + '</td>' +
+          '<td class="num text-teal-bright">' + fmtSyp(t2.amountSyp) + '</td>' +
+          '<td class="num">' + fmtUsd(t2.usdAfter) + '</td>' +
+          '<td class="num">' + fmtSyp(t2.sypAfter) + '</td>' +
+          '<td>' + esc(t2.operator) + '</td>' +
+          '<td class="text-paper-dim">' + (t2.note ? esc(t2.note) : '&mdash;') + '</td>' +
+          actionsCell +
+        '</tr>'
+      );
+    }).join('');
+  }
+
+  /* ================= render: rate history ================= */
+  function renderHistoryTable() {
+    var body = document.getElementById('history-table-body');
+    var empty = document.getElementById('history-empty');
+    if (state.rateHistory.length === 0) { body.innerHTML = ''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    body.innerHTML = state.rateHistory.slice().reverse().map(function (h) {
+      return (
+        '<tr>' +
+          '<td dir="ltr">' + fmtDateTime(h.changedAt) + '</td>' +
+          '<td class="num"><span class="text-paper-dim">' + fmtRate(h.prevBuy) + ' &rarr;</span> <span class="text-brass-bright">' + fmtRate(h.buy) + '</span></td>' +
+          '<td class="num"><span class="text-paper-dim">' + fmtRate(h.prevSell) + ' &rarr;</span> <span class="text-teal-bright">' + fmtRate(h.sell) + '</span></td>' +
+          '<td>' + esc(h.changedBy) + '</td>' +
+        '</tr>'
+      );
+    }).join('');
+  }
+
+  /* ================= render: day close ================= */
+  function renderDayClose() {
+    var mount = document.getElementById('dayclose-mount');
+    if (!mount) return;
+    var txns = todaysTxns();
+    var stats = computeDayStats(txns);
+    var adj = computeAdjustmentTotals(todaysAdjustments());
+    var ds = state.dayStart;
+
+    mount.innerHTML =
+      '<div class="panel rounded-xl p-5">' +
+        '<h2 class="font-display text-lg mb-1">' + esc(t('openingBalances')) + '</h2>' +
+        '<p class="text-xs text-paper-dim mb-4">' + t('startedLabel', { time: fmtDateTime(ds.startedAt), name: esc(ds.startedBy) }) + '</p>' +
+        '<form id="opening-form" data-form="set-opening" class="space-y-3">' +
+          '<div>' +
+            '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('openingUsdLabel')) + '</label>' +
+            '<input name="usd" type="number" min="0" step="0.01" value="' + ds.usd + '" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono" />' +
+          '</div>' +
+          '<div>' +
+            '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('openingSypLabel')) + '</label>' +
+            '<input name="syp" type="number" min="0" step="1" value="' + ds.syp + '" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono" />' +
+          '</div>' +
+          '<p class="text-[11px] text-paper-dim leading-relaxed">' + esc(t('openingHelpText')) + '</p>' +
+          '<button type="submit" class="btn btn-ghost rounded-lg px-4 py-2 text-sm w-full">' + esc(t('setOpeningBtn')) + '</button>' +
+        '</form>' +
+      '</div>' +
+      '<div class="panel rounded-xl p-5">' +
+        '<h2 class="font-display text-lg mb-4">' + esc(t('endOfDaySummary')) + '</h2>' +
+        '<div class="space-y-2 text-sm mb-5">' +
+          summaryRow(t('rowOpeningUsd'), fmtUsd(ds.usd)) +
+          summaryRow(t('rowCurrentUsd'), fmtUsd(state.reserves.usd)) +
+          summaryRow(t('rowOpeningSyp'), fmtSyp(ds.syp)) +
+          summaryRow(t('rowCurrentSyp'), fmtSyp(state.reserves.syp)) +
+          summaryRow(t('rowBuyVolume'), fmtUsd(stats.buyVolume)) +
+          summaryRow(t('rowSellVolume'), fmtUsd(stats.sellVolume)) +
+          summaryRow(t('rowTradesToday'), String(stats.count)) +
+          summaryRow(t('rowAdjUsd'), fmtUsdSigned(adj.usd)) +
+          summaryRow(t('rowAdjSyp'), fmtSypSigned(adj.syp)) +
+        '</div>' +
+        '<div class="panel-raised rounded-lg px-4 py-3 flex items-center justify-between mb-5">' +
+          '<span class="text-xs text-paper-dim uppercase tracking-wide">' + esc(t('totalProfitLoss')) + '</span>' +
+          '<span class="font-mono text-xl font-tabular ' + (stats.profit >= 0 ? 'text-teal-bright' : 'text-rose-bright') + '" dir="ltr">' + fmtSypSigned(stats.profit) + '</span>' +
+        '</div>' +
+        '<button data-action="close-day" class="btn btn-brass rounded-lg px-4 py-2.5 text-sm w-full">' + esc(t('closeDayBtn')) + '</button>' +
+      '</div>';
+  }
+
+  function renderReserveAdjust() {
+    var mount = document.getElementById('reserve-adjust-mount');
+    if (!mount) return;
+    var recent = todaysAdjustments().slice().reverse().slice(0, 12);
+    var currencyLabel = adjustCurrency === 'usd' ? t('currencyUsd') : t('currencySyp');
+
+    mount.innerHTML =
+      '<div class="panel rounded-xl p-5">' +
+        '<div class="grid grid-cols-1 md:grid-cols-2 gap-5">' +
+          '<div>' +
+            '<h2 class="font-display text-lg mb-1">' + esc(t('adjustReserves')) + '</h2>' +
+            '<p class="text-xs text-paper-dim mb-4">' + esc(t('adjustDescription')) + '</p>' +
+            '<form id="adjust-reserve-form" data-form="adjust-reserve" class="space-y-3">' +
+              '<div class="grid grid-cols-2 gap-2">' +
+                '<button type="button" class="type-toggle rounded-lg py-2.5 text-sm font-semibold ' + (adjustCurrency === 'usd' ? 'active-buy' : '') + '" data-action="set-adjust-currency" data-currency="usd">' + esc(t('currencyUsd')) + '</button>' +
+                '<button type="button" class="type-toggle rounded-lg py-2.5 text-sm font-semibold ' + (adjustCurrency === 'syp' ? 'active-sell' : '') + '" data-action="set-adjust-currency" data-currency="syp">' + esc(t('currencySyp')) + '</button>' +
+              '</div>' +
+              '<div class="grid grid-cols-2 gap-2">' +
+                '<button type="button" class="type-toggle rounded-lg py-2.5 text-sm font-semibold ' + (adjustDirection === 'add' ? 'active-buy' : '') + '" data-action="set-adjust-direction" data-direction="add">' + esc(t('directionAdd')) + '</button>' +
+                '<button type="button" class="type-toggle rounded-lg py-2.5 text-sm font-semibold ' + (adjustDirection === 'remove' ? 'active-sell' : '') + '" data-action="set-adjust-direction" data-direction="remove">' + esc(t('directionRemove')) + '</button>' +
+              '</div>' +
+              '<div>' +
+                '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('amountWithCurrency', { currency: currencyLabel })) + '</label>' +
+                '<input name="amount" type="number" min="0" step="' + (adjustCurrency === 'usd' ? '0.01' : '1') + '" required placeholder="0.00" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono" />' +
+              '</div>' +
+              '<div>' +
+                '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('reasonOptionalLabel')) + '</label>' +
+                '<input name="reason" type="text" maxlength="80" placeholder="' + esc(t('reasonPlaceholder')) + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />' +
+              '</div>' +
+              '<div id="adjust-reserve-error" class="hidden text-rose-bright text-xs bg-rose/10 border border-rose/30 rounded-lg px-3 py-2"></div>' +
+              '<button type="submit" class="btn ' + (adjustDirection === 'add' ? 'btn-brass' : 'btn-danger') + ' rounded-lg px-4 py-2.5 text-sm w-full">' + esc(adjustDirection === 'add' ? t('addToReserveBtn') : t('removeFromReserveBtn')) + '</button>' +
+            '</form>' +
+          '</div>' +
+          '<div>' +
+            '<h3 class="text-xs font-semibold uppercase tracking-wide text-paper-dim mb-2">' + esc(t('todaysAdjustments')) + '</h3>' +
+            '<div class="space-y-2 max-h-64 overflow-y-auto pe-1">' +
+              (recent.length ? recent.map(function (a) {
+                var tone = a.direction === 'add' ? 'text-teal-bright' : 'text-rose-bright';
+                var sign = a.direction === 'add' ? '+' : '−';
+                var fmt = a.currency === 'usd' ? fmtUsd(a.amount) : fmtSyp(a.amount);
+                return (
+                  '<div class="flex items-center justify-between text-xs border-b border-ink-800 pb-2">' +
+                    '<div>' +
+                      '<div class="font-mono ' + tone + '" dir="ltr">' + sign + fmt + '</div>' +
+                      '<div class="text-paper-dim">' + esc(a.reason || t('noReasonGiven')) + ' &middot; ' + esc(a.by) + '</div>' +
+                    '</div>' +
+                    '<span class="text-paper-dim font-mono" dir="ltr">' + fmtTime(a.at) + '</span>' +
+                  '</div>'
+                );
+              }).join('') : '<p class="text-xs text-paper-dim">' + esc(t('noAdjustmentsToday')) + '</p>') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function summaryRow(label, value) {
+    return '<div class="flex items-center justify-between"><span class="text-paper-dim">' + esc(label) + '</span><span class="font-mono font-tabular" dir="ltr">' + value + '</span></div>';
+  }
+
+  function renderDayHistoryTable() {
+    var body = document.getElementById('dayhistory-table-body');
+    var empty = document.getElementById('dayhistory-empty');
+    if (state.dayHistory.length === 0) { body.innerHTML = ''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    body.innerHTML = state.dayHistory.slice().reverse().map(function (d) {
+      return (
+        '<tr>' +
+          '<td dir="ltr">' + fmtDateTime(d.closedAt) + '</td>' +
+          '<td class="num">' + fmtUsd(d.openUsd) + '</td>' +
+          '<td class="num">' + fmtSyp(d.openSyp) + '</td>' +
+          '<td class="num">' + fmtUsd(d.closeUsd) + '</td>' +
+          '<td class="num">' + fmtSyp(d.closeSyp) + '</td>' +
+          '<td class="num">' + fmtUsd(d.buyVolumeUsd) + '</td>' +
+          '<td class="num">' + fmtUsd(d.sellVolumeUsd) + '</td>' +
+          '<td class="num">' + d.txnCount + '</td>' +
+          '<td class="num ' + (d.profit >= 0 ? 'text-teal-bright' : 'text-rose-bright') + '">' + fmtSypSigned(d.profit) + '</td>' +
+          '<td>' + esc(d.closedBy) + '</td>' +
+        '</tr>'
+      );
+    }).join('');
+  }
+
+  /* ================= render: admin ================= */
+  function renderAdmin() {
+    var body = document.getElementById('users-table-body');
+    if (!body) return;
+    body.innerHTML = state.users.map(function (u) {
+      var isSelf = u.id === session.userId;
+      var lastAdmin = u.role === 'admin' && state.users.filter(function (x) { return x.role === 'admin'; }).length <= 1;
+      var canDelete = !isSelf && !lastAdmin;
+      return (
+        '<tr>' +
+          '<td class="font-medium">' + esc(u.username) + (isSelf ? ' <span class="text-paper-dim text-xs">' + esc(t('youTag')) + '</span>' : '') + '</td>' +
+          '<td><span class="badge ' + (u.role === 'admin' ? 'badge-admin' : 'badge-staff') + '">' + esc(u.role === 'admin' ? t('roleAdmin') : t('roleStaff')) + '</span></td>' +
+          '<td class="text-paper-dim" dir="ltr">' + fmtDateTime(u.createdAt) + '</td>' +
+          '<td class="text-paper-dim" dir="ltr">' + (u.lastLoginAt ? fmtDateTime(u.lastLoginAt) : '&mdash;') + '</td>' +
+          '<td>' +
+            '<div class="flex items-center gap-1.5 flex-wrap">' +
+              '<button class="btn btn-ghost rounded px-2.5 py-1 text-[11px]" data-action="toggle-role" data-id="' + u.id + '"' + (lastAdmin && u.role === 'admin' ? ' disabled title="' + esc(t('atLeastOneAdminTitle')) + '"' : '') + '>' + esc(u.role === 'admin' ? t('makeStaffBtn') : t('makeAdminBtn')) + '</button>' +
+              '<button class="btn btn-ghost rounded px-2.5 py-1 text-[11px]" data-action="reset-password" data-id="' + u.id + '">' + esc(t('resetPasswordBtn')) + '</button>' +
+              '<button class="btn btn-danger rounded px-2.5 py-1 text-[11px]" data-action="delete-user" data-id="' + u.id + '"' + (canDelete ? '' : ' disabled title="' + esc(t('cannotRemoveTitle')) + '"') + '>' + esc(t('deleteAccountBtn')) + '</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>'
+      );
+    }).join('');
+
+    var logMount = document.getElementById('login-log-mount');
+    if (logMount) {
+      var entries = state.loginLog.slice().reverse().slice(0, 30);
+      logMount.innerHTML = entries.length ? entries.map(function (l) {
+        return '<div class="flex items-center justify-between text-xs border-b border-ink-800 pb-2"><span class="font-medium">' + esc(l.username) + '</span><span class="text-paper-dim font-mono" dir="ltr">' + fmtDateTime(l.at) + '</span></div>';
+      }).join('') : '<p class="text-xs text-paper-dim">' + esc(t('noLoginsYet')) + '</p>';
+    }
+  }
+
+  /* ================= render: all ================= */
+  function renderAll() {
+    renderSessionBadges();
+    renderRateBoard();
+    renderStatCards();
+    renderTerminal();
+    renderTxnTable();
+    renderHistoryTable();
+    renderDayClose();
+    renderReserveAdjust();
+    renderDayHistoryTable();
+    renderAdmin();
+    document.getElementById('footer-day-started').textContent = t('dayStartedFooter', { time: fmtDateTime(state.dayStart.startedAt) });
+  }
+
+  /* ================= actions: auth ================= */
+  async function handleLogin(form) {
+    var username = form.username.value.trim();
+    var password = form.password.value;
+    var errEl = document.getElementById('login-error');
+    errEl.classList.add('hidden');
+
+    var user = state.users.find(function (u) { return u.username.toLowerCase() === username.toLowerCase(); });
+    var hash = await hashPassword(password);
+    if (!user || user.passwordHash !== hash) {
+      errEl.textContent = t('loginError');
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    session = { userId: user.id, username: user.username, role: user.role, loginAt: nowIso() };
+    saveSession();
+    user.lastLoginAt = nowIso();
+    state.loginLog.push({ id: uid(), username: user.username, at: nowIso() });
+    persist();
+    showApp();
+  }
+
+  function handleLogout() {
+    clearSession();
+    showLogin();
+  }
+
+  function showApp() {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    setActiveView('dashboard');
+    renderAll();
+  }
+
+  function showLogin() {
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('login-form').reset();
+    document.getElementById('login-error').classList.add('hidden');
+  }
+
+  /* ================= actions: rates ================= */
+  function handleUpdateRates(form) {
+    var buy = parseFloat(form.buy.value);
+    var sell = parseFloat(form.sell.value);
+    var errEl = document.getElementById('rate-form-error');
+    errEl.classList.add('hidden');
+
+    if (!(buy > 0) || !(sell > 0)) {
+      errEl.textContent = t('rateErrorPositive');
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if (sell < buy) {
+      errEl.textContent = t('rateErrorSellLtBuy');
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    state.rateHistory.push({
+      id: uid(), prevBuy: state.rates.buy, prevSell: state.rates.sell,
+      buy: buy, sell: sell, changedBy: session.username, changedAt: nowIso(),
+    });
+    state.rates = { buy: buy, sell: sell, updatedAt: nowIso(), updatedBy: session.username };
+    persist();
+    renderAll();
+    toast(t('rateUpdatedToast', { buy: fmtRate(buy), sell: fmtRate(sell) }));
+  }
+
+  /* ================= actions: transactions ================= */
+  function handleExecuteTxn(form) {
+    var amount = parseFloat(form.amount.value);
+    var note = form.note.value.trim();
+    var errEl = document.getElementById('terminal-error');
+    errEl.classList.add('hidden');
+
+    if (!(amount > 0)) {
+      errEl.textContent = t('terminalErrorAmount');
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    var rate = txnType === 'buy' ? state.rates.buy : state.rates.sell;
+    var amountSyp = amount * rate;
+
+    if (txnType === 'buy' && amountSyp > state.reserves.syp) {
+      errEl.textContent = t('terminalErrorSyp', { amount: fmtSyp(amountSyp) });
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if (txnType === 'sell' && amount > state.reserves.usd) {
+      errEl.textContent = t('terminalErrorUsd', { amount: fmtUsd(amount) });
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    if (txnType === 'buy') { state.reserves.usd += amount; state.reserves.syp -= amountSyp; }
+    else { state.reserves.usd -= amount; state.reserves.syp += amountSyp; }
+    state.reserves.usd = clamp0(Number(state.reserves.usd.toFixed(2)));
+    state.reserves.syp = clamp0(Number(state.reserves.syp.toFixed(2)));
+
+    state.transactions.unshift({
+      id: uid(), type: txnType, amountUsd: amount, rateApplied: rate,
+      buyRateAtTime: state.rates.buy, sellRateAtTime: state.rates.sell,
+      amountSyp: amountSyp, usdAfter: state.reserves.usd, sypAfter: state.reserves.syp,
+      operator: session.username, note: note, at: nowIso(),
+    });
+
+    persist();
+    renderAll();
+    toast(t(txnType === 'buy' ? 'boughtToast' : 'soldToast', { amount: fmtUsd(amount), rate: fmtRate(rate) }));
+  }
+
+  function handleDeleteTxn(id) {
+    var t2 = state.transactions.find(function (x) { return x.id === id; });
+    if (!t2) return;
+    if (!isEditableTxn(t2)) { toast(t('onlyTodayEditableToast'), 'error'); return; }
+
+    confirmModal({
+      title: t('deleteTransactionTitle'),
+      body: t('deleteTransactionBody', { type: (t2.type === 'buy' ? t('typeBuy') : t('typeSell')), amount: fmtUsd(t2.amountUsd), time: fmtDateTime(t2.at) }),
+      confirmLabel: t('deleteTransactionConfirmBtn'),
+      danger: true,
+      onConfirm: function () {
+        var ok = applyLedgerChange(function () {
+          state.transactions = state.transactions.filter(function (x) { return x.id !== id; });
+        });
+        if (!ok) { toast(t('cannotDeleteNegativeToast'), 'error'); return; }
+        persist();
+        renderAll();
+        toast(t('transactionDeletedToast'));
+      },
+    });
+  }
+
+  function openEditTxnModal(id) {
+    var t2 = state.transactions.find(function (x) { return x.id === id; });
+    if (!t2) return;
+    if (!isEditableTxn(t2)) { toast(t('onlyTodayEditableToast'), 'error'); return; }
+
+    var editType = t2.type;
+    var root = document.getElementById('modal-root');
+
+    function paint() {
+      root.innerHTML =
+        '<div class="modal-backdrop" data-action="modal-backdrop">' +
+          '<div class="modal-card panel-raised rounded-xl p-6 max-w-sm w-full" role="dialog" aria-modal="true">' +
+            '<h3 class="font-display text-lg mb-1">' + esc(t('editTransactionTitle')) + '</h3>' +
+            '<p class="text-xs text-paper-dim mb-4">' + t('recordedByLabel', { time: fmtDateTime(t2.at), name: esc(t2.operator) }) + '</p>' +
+            '<form id="edit-txn-form" class="space-y-3">' +
+              '<div class="grid grid-cols-2 gap-2">' +
+                '<button type="button" class="type-toggle rounded-lg py-2.5 text-sm font-semibold ' + (editType === 'buy' ? 'active-buy' : '') + '" data-action="edit-set-type" data-type="buy">' + esc(t('buyUsdBtn')) + '</button>' +
+                '<button type="button" class="type-toggle rounded-lg py-2.5 text-sm font-semibold ' + (editType === 'sell' ? 'active-sell' : '') + '" data-action="edit-set-type" data-type="sell">' + esc(t('sellUsdBtn')) + '</button>' +
+              '</div>' +
+              '<div>' +
+                '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('amountUsdLabel')) + '</label>' +
+                '<input name="amount" type="number" min="0" step="0.01" value="' + t2.amountUsd + '" dir="ltr" required class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono" />' +
+              '</div>' +
+              '<div>' +
+                '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('rateAppliedFieldLabel')) + '</label>' +
+                '<input name="rate" type="number" min="0" step="0.01" value="' + t2.rateApplied + '" dir="ltr" required class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono" />' +
+              '</div>' +
+              '<div>' +
+                '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('noteLabel')) + '</label>' +
+                '<input name="note" type="text" maxlength="60" value="' + esc(t2.note || '') + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />' +
+              '</div>' +
+              '<div id="edit-txn-error" class="hidden text-rose-bright text-xs bg-rose/10 border border-rose/30 rounded-lg px-3 py-2"></div>' +
+              '<div class="flex justify-end gap-2 pt-1">' +
+                '<button type="button" class="btn btn-ghost rounded-lg px-4 py-2 text-sm" data-action="modal-cancel">' + esc(t('cancelBtn')) + '</button>' +
+                '<button type="submit" class="btn btn-brass rounded-lg px-4 py-2 text-sm">' + esc(t('saveChangesBtn')) + '</button>' +
+              '</div>' +
+            '</form>' +
+          '</div>' +
+        '</div>';
+
+      root.querySelector('[data-action="modal-cancel"]').addEventListener('click', closeModal);
+      root.querySelector('[data-action="modal-backdrop"]').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModal(); });
+      root.querySelectorAll('[data-action="edit-set-type"]').forEach(function (btn) {
+        btn.addEventListener('click', function () { editType = btn.dataset.type; paint(); });
+      });
+      root.querySelector('#edit-txn-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var form = e.target;
+        var amount = parseFloat(form.amount.value);
+        var rate = parseFloat(form.rate.value);
+        var note = form.note.value.trim();
+        var errEl = document.getElementById('edit-txn-error');
+        errEl.classList.add('hidden');
+
+        if (!(amount > 0) || !(rate > 0)) {
+          errEl.textContent = t('editErrorAmountRate');
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        var ok = applyLedgerChange(function () {
+          t2.type = editType;
+          t2.amountUsd = amount;
+          t2.rateApplied = rate;
+          t2.amountSyp = Number((amount * rate).toFixed(2));
+          t2.note = note;
+          if (editType === 'buy') t2.buyRateAtTime = rate; else t2.sellRateAtTime = rate;
+          t2.editedAt = nowIso();
+          t2.editedBy = session.username;
+        });
+
+        if (!ok) {
+          errEl.textContent = t('editErrorNegative');
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        persist();
+        closeModal();
+        renderAll();
+        toast(t('transactionUpdatedToast'));
+      });
+    }
+
+    paint();
+  }
+
+  /* ================= actions: day close ================= */
+  function handleSetOpening(form) {
+    var usd = parseFloat(form.usd.value);
+    var syp = parseFloat(form.syp.value);
+    if (!(usd >= 0) || !(syp >= 0)) { toast(t('enterValidAmounts'), 'error'); return; }
+
+    confirmModal({
+      title: t('setOpeningConfirmTitle'),
+      body: t('setOpeningConfirmBody', { usd: fmtUsd(usd), syp: fmtSyp(syp) }),
+      confirmLabel: t('setBalancesBtn'),
+      onConfirm: function () {
+        state.reserves = { usd: usd, syp: syp };
+        state.dayStart = { usd: usd, syp: syp, startedAt: nowIso(), startedBy: session.username };
+        persist();
+        renderAll();
+        toast(t('openingBalancesSetToast'));
+      },
+    });
+  }
+
+  function handleAdjustReserve(form) {
+    var amount = parseFloat(form.amount.value);
+    var reason = form.reason.value.trim();
+    var errEl = document.getElementById('adjust-reserve-error');
+    errEl.classList.add('hidden');
+
+    if (!(amount > 0)) {
+      errEl.textContent = t('adjErrorAmount');
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    var current = state.reserves[adjustCurrency];
+    if (adjustDirection === 'remove' && amount > current) {
+      var fmt = adjustCurrency === 'usd' ? fmtUsd : fmtSyp;
+      errEl.textContent = t('adjErrorInsufficient', { currency: (adjustCurrency === 'usd' ? t('currencyUsd') : t('currencySyp')), available: fmt(current) });
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    state.reserves[adjustCurrency] = adjustDirection === 'add' ? current + amount : current - amount;
+    state.reserves[adjustCurrency] = Number(state.reserves[adjustCurrency].toFixed(2));
+
+    state.adjustments.push({
+      id: uid(), currency: adjustCurrency, direction: adjustDirection, amount: amount,
+      reason: reason, by: session.username, at: nowIso(),
+    });
+
+    persist();
+    renderAll();
+    var fmtOut = adjustCurrency === 'usd' ? fmtUsd(amount) : fmtSyp(amount);
+    toast(t(adjustDirection === 'add' ? 'adjAddedToast' : 'adjRemovedToast', { amount: fmtOut }));
+  }
+
+  function handleCloseDay() {
+    var txns = todaysTxns();
+    var stats = computeDayStats(txns);
+    confirmModal({
+      title: t('closeDayConfirmTitle'),
+      body: t('closeDayConfirmBody', { count: tradeCountLabel(stats.count), profit: fmtSypSigned(stats.profit) }),
+      confirmLabel: t('closeDayConfirmBtn'),
+      danger: true,
+      onConfirm: function () {
+        state.dayHistory.push({
+          id: uid(), closedAt: nowIso(), closedBy: session.username,
+          openedAt: state.dayStart.startedAt, openUsd: state.dayStart.usd, openSyp: state.dayStart.syp,
+          closeUsd: state.reserves.usd, closeSyp: state.reserves.syp,
+          buyVolumeUsd: stats.buyVolume, sellVolumeUsd: stats.sellVolume,
+          txnCount: stats.count, profit: stats.profit,
+        });
+        state.dayStart = { usd: state.reserves.usd, syp: state.reserves.syp, startedAt: nowIso(), startedBy: session.username };
+        persist();
+        renderAll();
+        toast(t('dayClosedToast'));
+      },
+    });
+  }
+
+  /* ================= actions: admin ================= */
+  async function handleCreateUser(form) {
+    var username = form.username.value.trim();
+    var password = form.password.value;
+    var role = form.role.value;
+    var errEl = document.getElementById('create-user-error');
+    errEl.classList.add('hidden');
+
+    if (username.length < 3) { errEl.textContent = t('usernameTooShort'); errEl.classList.remove('hidden'); return; }
+    if (state.users.some(function (u) { return u.username.toLowerCase() === username.toLowerCase(); })) {
+      errEl.textContent = t('usernameTaken'); errEl.classList.remove('hidden'); return;
+    }
+    if (password.length < 4) { errEl.textContent = t('passwordTooShort'); errEl.classList.remove('hidden'); return; }
+
+    var hash = await hashPassword(password);
+    state.users.push({ id: uid(), username: username, passwordHash: hash, role: role, createdAt: nowIso(), lastLoginAt: null });
+    persist();
+    renderAdmin();
+    form.reset();
+    toast(t('accountCreatedToast', { username: username }));
+  }
+
+  function handleToggleRole(id) {
+    var user = state.users.find(function (u) { return u.id === id; });
+    if (!user) return;
+    var admins = state.users.filter(function (u) { return u.role === 'admin'; });
+    if (user.role === 'admin' && admins.length <= 1) { toast(t('atLeastOneAdminToast'), 'error'); return; }
+    user.role = user.role === 'admin' ? 'staff' : 'admin';
+    persist();
+    renderAdmin();
+    toast(t('roleChangedToast', { username: user.username, role: (user.role === 'admin' ? t('roleAdmin') : t('roleStaff')) }));
+  }
+
+  function handleDeleteUser(id) {
+    var user = state.users.find(function (u) { return u.id === id; });
+    if (!user) return;
+    if (user.id === session.userId) { toast(t('cannotDeleteSelfToast'), 'error'); return; }
+    var admins = state.users.filter(function (u) { return u.role === 'admin'; });
+    if (user.role === 'admin' && admins.length <= 1) { toast(t('atLeastOneAdminToast'), 'error'); return; }
+
+    confirmModal({
+      title: t('removeStaffTitle'),
+      body: t('removeStaffBody', { username: esc(user.username) }),
+      confirmLabel: t('removeBtn'),
+      danger: true,
+      onConfirm: function () {
+        state.users = state.users.filter(function (u) { return u.id !== id; });
+        persist();
+        renderAdmin();
+        toast(t('accountRemovedToast'));
+      },
+    });
+  }
+
+  function handleResetPassword(id) {
+    var user = state.users.find(function (u) { return u.id === id; });
+    if (!user) return;
+    var root = document.getElementById('modal-root');
+    root.innerHTML =
+      '<div class="modal-backdrop" data-action="modal-backdrop">' +
+        '<div class="modal-card panel-raised rounded-xl p-6 max-w-sm w-full" role="dialog" aria-modal="true">' +
+          '<h3 class="font-display text-lg mb-2">' + esc(t('resetPasswordTitle')) + '</h3>' +
+          '<p class="text-sm text-paper-dim mb-4">' + t('resetPasswordBody', { username: '<b class="text-paper">' + esc(user.username) + '</b>' }) + '</p>' +
+          '<form id="reset-pw-form">' +
+            '<input name="password" type="password" minlength="4" required placeholder="' + esc(t('newPasswordPlaceholder')) + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm mb-2" />' +
+            '<p id="reset-pw-error" class="hidden text-rose-bright text-xs mb-2"></p>' +
+            '<div class="flex justify-end gap-2 mt-3">' +
+              '<button type="button" class="btn btn-ghost rounded-lg px-4 py-2 text-sm" data-action="modal-cancel">' + esc(t('cancelBtn')) + '</button>' +
+              '<button type="submit" class="btn btn-brass rounded-lg px-4 py-2 text-sm">' + esc(t('savePasswordBtn')) + '</button>' +
+            '</div>' +
+          '</form>' +
+        '</div>' +
+      '</div>';
+    root.querySelector('[data-action="modal-cancel"]').addEventListener('click', closeModal);
+    root.querySelector('[data-action="modal-backdrop"]').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModal(); });
+    root.querySelector('#reset-pw-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var pw = e.target.password.value;
+      if (pw.length < 4) {
+        var errE = document.getElementById('reset-pw-error');
+        errE.textContent = t('passwordTooShort');
+        errE.classList.remove('hidden');
+        return;
+      }
+      user.passwordHash = await hashPassword(pw);
+      persist();
+      closeModal();
+      toast(t('passwordUpdatedToast', { username: user.username }));
+    });
+  }
+
+  function handleFactoryReset() {
+    var root = document.getElementById('modal-root');
+    root.innerHTML =
+      '<div class="modal-backdrop" data-action="modal-backdrop">' +
+        '<div class="modal-card panel-raised rounded-xl p-6 max-w-sm w-full" role="dialog" aria-modal="true">' +
+          '<h3 class="font-display text-lg mb-2 text-rose-bright">' + esc(t('factoryResetTitle')) + '</h3>' +
+          '<p class="text-sm text-paper-dim mb-4 leading-relaxed">' + esc(t('factoryResetBody')) + '</p>' +
+          '<form id="factory-reset-form">' +
+            '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('typeResetLabel')) + '</label>' +
+            '<input name="confirm" type="text" autocomplete="off" placeholder="RESET" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm mb-2" />' +
+            '<p id="factory-reset-error" class="hidden text-rose-bright text-xs mb-2"></p>' +
+            '<div class="flex justify-end gap-2 mt-3">' +
+              '<button type="button" class="btn btn-ghost rounded-lg px-4 py-2 text-sm" data-action="modal-cancel">' + esc(t('cancelBtn')) + '</button>' +
+              '<button type="submit" class="btn btn-danger rounded-lg px-4 py-2 text-sm">' + esc(t('eraseEverythingBtn')) + '</button>' +
+            '</div>' +
+          '</form>' +
+        '</div>' +
+      '</div>';
+    root.querySelector('[data-action="modal-cancel"]').addEventListener('click', closeModal);
+    root.querySelector('[data-action="modal-backdrop"]').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModal(); });
+    root.querySelector('#factory-reset-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var val = e.target.confirm.value.trim().toUpperCase();
+      if (val !== 'RESET') {
+        var errE = document.getElementById('factory-reset-error');
+        errE.textContent = t('typeResetError');
+        errE.classList.remove('hidden');
+        return;
+      }
+      var t2 = nowIso();
+      state.transactions = [];
+      state.rateHistory = [];
+      state.dayHistory = [];
+      state.adjustments = [];
+      state.loginLog = [];
+      state.rates = { buy: 14850, sell: 15050, updatedAt: t2, updatedBy: session.username };
+      state.reserves = { usd: 5000, syp: 60000000 };
+      state.dayStart = { usd: 5000, syp: 60000000, startedAt: t2, startedBy: session.username };
+      persist();
+      closeModal();
+      renderAll();
+      toast(t('allDataResetToast'));
+    });
+  }
+
+  /* ================= event delegation ================= */
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('form[data-form]');
+    if (!form) return;
+    e.preventDefault();
+    var kind = form.dataset.form;
+    if (kind === 'login') handleLogin(form);
+    else if (kind === 'update-rates') handleUpdateRates(form);
+    else if (kind === 'execute-txn') handleExecuteTxn(form);
+    else if (kind === 'create-user') handleCreateUser(form);
+    else if (kind === 'set-opening') handleSetOpening(form);
+    else if (kind === 'adjust-reserve') handleAdjustReserve(form);
+  });
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var action = btn.dataset.action;
+    if (action === 'nav') setActiveView(btn.dataset.view);
+    else if (action === 'logout') handleLogout();
+    else if (action === 'set-txn-type') { txnType = btn.dataset.type; renderTerminal(); }
+    else if (action === 'set-adjust-currency') { adjustCurrency = btn.dataset.currency; renderReserveAdjust(); }
+    else if (action === 'set-adjust-direction') { adjustDirection = btn.dataset.direction; renderReserveAdjust(); }
+    else if (action === 'close-day') handleCloseDay();
+    else if (action === 'toggle-role') handleToggleRole(btn.dataset.id);
+    else if (action === 'delete-user') handleDeleteUser(btn.dataset.id);
+    else if (action === 'reset-password') handleResetPassword(btn.dataset.id);
+    else if (action === 'edit-txn') openEditTxnModal(btn.dataset.id);
+    else if (action === 'delete-txn') handleDeleteTxn(btn.dataset.id);
+    else if (action === 'factory-reset') handleFactoryReset();
+    else if (action === 'set-lang') setLang(btn.dataset.lang);
+  });
+
+  /* ================= boot ================= */
+  async function boot() {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    applyStaticI18n();
+    renderLangToggle();
+
+    state = loadState();
+    if (!state) state = defaultState();
+    await ensureSeedAdmin();
+    persist();
+
+    session = loadSession();
+    tickClock();
+    setInterval(tickClock, 1000);
+
+    if (session && state.users.some(function (u) { return u.id === session.userId; })) {
+      showApp();
+    } else {
+      showLogin();
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
