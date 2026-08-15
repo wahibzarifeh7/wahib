@@ -376,27 +376,19 @@
   'use strict';
 
   /* ================= constants ================= */
+  var DB_KEY = 'sarraf_exchange_db_v1';
   var SESSION_KEY = 'sarraf_exchange_session_v1';
   var LANG_KEY = 'sarraf_exchange_lang_v1';
-  // Web build (served from Netlify) calls the API same-origin via a relative
-  // path. Desktop build loads this file via file://, so it needs an absolute
-  // URL — filled in once the site is deployed (see README/deploy notes).
-  var API_BASE = (function () {
-    if (location.protocol === 'file:') return 'https://wzexchange.netlify.app/api';
-    return '/api';
-  })();
 
   /* ================= i18n ================= */
   var I18N = {
     en: {
-      tagline: 'Currency Exchange Desk',
+      tagline: 'USD · SYP Exchange Desk',
       pageTitle: 'WZExchange',
       usernameLabel: 'Username', passwordLabel: 'Password',
       loginUsernamePlaceholder: 'e.g. admin',
       signIn: 'Sign In',
       loginError: 'Incorrect username or password.',
-      sessionReplacedToast: 'You’ve been signed out because this account signed in on another device.',
-      accountLockedToast: 'Too many failed attempts. Try again in a minute.',
       navDashboard: 'Dashboard', navRateHistory: 'Rate History', navDayClose: 'Day Close', navAdmin: 'Admin',
       signOut: 'Sign Out', roleAdmin: 'admin', roleStaff: 'staff',
       rateBoardTitle: 'USD ⇆ SYP Rate Board',
@@ -423,13 +415,19 @@
       terminalErrorAmount: 'Enter an amount greater than zero.',
       terminalErrorSyp: 'Not enough SYP in reserve to complete this trade ({amount} needed).',
       terminalErrorUsd: 'Not enough USD in reserve to complete this trade ({amount} needed).',
+      adjustCashToggleLabel: 'Actual cash given/received differs (denomination shortage)',
+      actualAmountLabel: 'Actual amount (£S)', varianceLabel: 'Difference from calculated',
+      terminalErrorActualAmount: 'Enter the actual amount handed over, greater than zero.',
+      terminalErrorAdjustReason: 'Add a short note explaining the adjustment (e.g. no small notes available).',
       boughtToast: 'Bought {amount} at {rate}', soldToast: 'Sold {amount} at {rate}',
+      txnAdjustedToast: 'Trade recorded with a cash adjustment ({variance}).',
       recentTransactions: 'Recent Transactions', totalCount: '{count} total',
       colTime: 'Time', colType: 'Type', colUsd: 'USD', colRate: 'Rate', colSyp: 'SYP',
       colUsdBal: 'USD Bal.', colSypBal: 'SYP Bal.', colOperator: 'Operator', colNote: 'Note', colActions: 'Actions',
       noTransactionsYet: 'No transactions yet — execute a trade from the terminal.',
       typeBuy: 'buy', typeSell: 'sell', editBtn: 'Edit', deleteBtn: 'Delete', lockedLabel: 'Locked',
       editedTag: '(edited)', editedTooltip: 'Edited {time} by {name}',
+      adjustedTag: 'adjusted', adjustedTooltip: 'Calculated {calculated} · actually given/received {actual} · difference {variance}',
       rateChangeHistory: 'Rate Change History', colBuySyp: 'Buy (£S)', colSellSyp: 'Sell (£S)',
       colChangedBy: 'Changed By', noRateChanges: 'No rate changes recorded yet.',
       openingBalances: 'Opening Balances', startedLabel: 'Started {time} by {name}',
@@ -440,6 +438,7 @@
       rowOpeningUsd: 'Opening USD', rowCurrentUsd: 'Current USD', rowOpeningSyp: 'Opening SYP', rowCurrentSyp: 'Current SYP',
       rowBuyVolume: 'Buy Volume (USD)', rowSellVolume: 'Sell Volume (USD)', rowTradesToday: 'Trades Today',
       rowAdjUsd: 'Adjustments (USD)', rowAdjSyp: 'Adjustments (SYP)',
+      rowCashVariance: 'Cash Variance (denomination rounding)',
       totalProfitLoss: 'Total Profit / Loss', closeDayBtn: 'Close Day & Start New',
       enterValidAmounts: 'Enter valid non-negative amounts.',
       setOpeningConfirmTitle: 'Set Opening Balances',
@@ -512,8 +511,6 @@
       loginUsernamePlaceholder: 'مثال: admin',
       signIn: 'تسجيل الدخول',
       loginError: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
-      sessionReplacedToast: 'تم تسجيل خروجك لأن هذا الحساب سُجّل دخوله من جهاز آخر.',
-      accountLockedToast: 'محاولات فاشلة كثيرة جدًا. حاول مجددًا بعد دقيقة.',
       navDashboard: 'لوحة التحكم', navRateHistory: 'سجل الأسعار', navDayClose: 'إغلاق اليوم', navAdmin: 'الإدارة',
       signOut: 'تسجيل الخروج', roleAdmin: 'مسؤول', roleStaff: 'موظف',
       rateBoardTitle: 'لوحة أسعار الدولار ⇆ الليرة',
@@ -540,13 +537,19 @@
       terminalErrorAmount: 'أدخل مبلغًا أكبر من الصفر.',
       terminalErrorSyp: 'لا يوجد رصيد كافٍ من الليرة السورية لإتمام هذه الصفقة ({amount} مطلوب).',
       terminalErrorUsd: 'لا يوجد رصيد كافٍ من الدولار لإتمام هذه الصفقة ({amount} مطلوب).',
+      adjustCashToggleLabel: 'المبلغ الفعلي المُسلَّم/المُستلَم مختلف (نقص في فئة معينة)',
+      actualAmountLabel: 'المبلغ الفعلي (ل.س)', varianceLabel: 'الفرق عن المبلغ المحسوب',
+      terminalErrorActualAmount: 'أدخل المبلغ الفعلي الذي تم تسليمه، أكبر من الصفر.',
+      terminalErrorAdjustReason: 'أضف ملاحظة قصيرة توضح سبب التعديل (مثال: لا تتوفر فئات نقدية صغيرة).',
       boughtToast: 'تم شراء {amount} بسعر {rate}', soldToast: 'تم بيع {amount} بسعر {rate}',
+      txnAdjustedToast: 'تم تسجيل الصفقة مع تعديل نقدي ({variance}).',
       recentTransactions: 'المعاملات الأخيرة', totalCount: 'الإجمالي: {count}',
       colTime: 'الوقت', colType: 'النوع', colUsd: 'دولار', colRate: 'السعر', colSyp: 'ليرة',
       colUsdBal: 'رصيد الدولار', colSypBal: 'رصيد الليرة', colOperator: 'الموظف', colNote: 'ملاحظة', colActions: 'إجراءات',
       noTransactionsYet: 'لا توجد معاملات بعد — نفّذ صفقة من شاشة الصرافة.',
       typeBuy: 'شراء', typeSell: 'بيع', editBtn: 'تعديل', deleteBtn: 'حذف', lockedLabel: 'مقفل',
       editedTag: '(مُعدلة)', editedTooltip: 'عُدلت {time} بواسطة {name}',
+      adjustedTag: 'مُعدَّل', adjustedTooltip: 'المحسوب {calculated} · الفعلي {actual} · الفرق {variance}',
       rateChangeHistory: 'سجل تغييرات السعر', colBuySyp: 'الشراء (ل.س)', colSellSyp: 'البيع (ل.س)',
       colChangedBy: 'عدلها', noRateChanges: 'لم يتم تسجيل أي تغييرات في الأسعار بعد.',
       openingBalances: 'الأرصدة الافتتاحية', startedLabel: 'بدأ في {time} بواسطة {name}',
@@ -557,6 +560,7 @@
       rowOpeningUsd: 'الدولار الافتتاحي', rowCurrentUsd: 'الدولار الحالي', rowOpeningSyp: 'الليرة الافتتاحية', rowCurrentSyp: 'الليرة الحالية',
       rowBuyVolume: 'حجم الشراء (دولار)', rowSellVolume: 'حجم البيع (دولار)', rowTradesToday: 'صفقات اليوم',
       rowAdjUsd: 'تعديلات (دولار)', rowAdjSyp: 'تعديلات (ليرة)',
+      rowCashVariance: 'فرق نقدي (تقريب الفئات)',
       totalProfitLoss: 'إجمالي الربح / الخسارة', closeDayBtn: 'إغلاق اليوم وبدء يوم جديد',
       enterValidAmounts: 'أدخل مبالغ صحيحة غير سالبة.',
       setOpeningConfirmTitle: 'ضبط الأرصدة الافتتاحية',
@@ -676,7 +680,9 @@
   }
 
   /* ================= utilities ================= */
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 9); }
   function nowIso() { return new Date().toISOString(); }
+  function clamp0(n) { return n < 0 ? 0 : n; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
 
   function fmtUsd(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -695,68 +701,65 @@
   function fmtDateTime(iso) { var d = new Date(iso); return d.toLocaleString('en-US', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }); }
   function fmtTime(iso) { var d = new Date(iso); return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
 
+  async function hashPassword(pw) {
+    var enc = new TextEncoder().encode('sarraf::' + pw);
+    var buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
   /* ================= state ================= */
-  // `state` is now just an in-memory cache of the server's last response —
-  // the database is the source of truth. Admin-only collections default to
-  // empty so render functions never crash for a staff session that never
-  // fetches /api/admin/state.
-  var state = {
-    rates: { buy: 0, sell: 0, updatedAt: nowIso(), updatedBy: '' },
-    reserves: { usd: 0, syp: 0 },
-    dayStart: { usd: 0, syp: 0, startedAt: nowIso(), startedBy: '' },
-    todayStats: { buyVolume: 0, sellVolume: 0, profit: 0, count: 0 },
-    transactions: [],
-    rateHistory: [],
-    users: [],
-    loginLog: [],
-    dayHistory: [],
-    adjustments: [],
-    adjustmentTotals: { usd: 0, syp: 0 },
-  };
+  var state = null;
   var session = null;
   var activeView = 'dashboard';
   var txnType = 'buy';
   var adjustCurrency = 'usd';
   var adjustDirection = 'add';
-  var pollTimer = null;
+
+  function defaultState() {
+    var t = nowIso();
+    return {
+      users: [],
+      loginLog: [],
+      rates: { buy: 14850, sell: 15050, updatedAt: t, updatedBy: 'system' },
+      rateHistory: [],
+      reserves: { usd: 5000, syp: 60000000 },
+      dayStart: { usd: 5000, syp: 60000000, startedAt: t, startedBy: 'system' },
+      transactions: [],
+      dayHistory: [],
+      adjustments: [],
+    };
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(DB_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed.users) parsed.users = [];
+      if (!parsed.loginLog) parsed.loginLog = [];
+      if (!parsed.rateHistory) parsed.rateHistory = [];
+      if (!parsed.transactions) parsed.transactions = [];
+      if (!parsed.dayHistory) parsed.dayHistory = [];
+      if (!parsed.adjustments) parsed.adjustments = [];
+      return parsed;
+    } catch (e) { return null; }
+  }
+
+  function persist() { localStorage.setItem(DB_KEY, JSON.stringify(state)); }
 
   function loadSession() {
-    try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY) || 'null'); }
     catch (e) { return null; }
   }
   function saveSession() { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
   function clearSession() { session = null; localStorage.removeItem(SESSION_KEY); }
 
-  // Central fetch wrapper: attaches the bearer token, and any 401 (missing,
-  // expired, or replaced-by-a-login-elsewhere session) forces a logout with
-  // a clear reason rather than each call site handling it separately.
-  async function apiFetch(path, opts) {
-    opts = opts || {};
-    var headers = Object.assign({}, opts.headers, { 'content-type': 'application/json' });
-    if (session && session.token) headers.authorization = 'Bearer ' + session.token;
-
-    var res;
-    try {
-      res = await fetch(API_BASE + path, {
-        method: opts.method || 'GET',
-        headers: headers,
-        body: opts.body != null ? JSON.stringify(opts.body) : undefined,
-      });
-    } catch (networkErr) {
-      return { ok: false, networkError: true, status: 0, data: { error: 'Network error — check your connection.' } };
+  async function ensureSeedAdmin() {
+    if (state.users.length === 0) {
+      var hash = await hashPassword('admin123');
+      state.users.push({ id: uid(), username: 'admin', passwordHash: hash, role: 'admin', createdAt: nowIso(), lastLoginAt: null });
+      persist();
     }
-
-    var data = {};
-    try { data = await res.json(); } catch (e) { /* empty body, e.g. 204 */ }
-
-    if (res.status === 401 && session) {
-      clearSession();
-      stopPolling();
-      showLogin();
-      toast(t('sessionReplacedToast'), 'error');
-    }
-
-    return { ok: res.ok, status: res.status, data: data };
   }
 
   /* ================= toasts & modals ================= */
@@ -798,11 +801,87 @@
   }
 
   /* ================= derived data ================= */
-  // All ledger math (recalculation, day stats, negative-balance guarding)
-  // now lives server-side (netlify/functions/lib/ledger.js) where it can run
-  // inside a locked DB transaction. The client only needs this one display
-  // check — everything else renders straight from whatever the API returned.
+  function todaysTxns() {
+    var start = state.dayStart.startedAt;
+    return state.transactions.filter(function (t) { return t.at >= start; });
+  }
+
+  function todaysAdjustments() {
+    var start = state.dayStart.startedAt;
+    return state.adjustments.filter(function (a) { return a.at >= start; });
+  }
+
+  function computeAdjustmentTotals(adjustments) {
+    var usd = 0, syp = 0;
+    adjustments.forEach(function (a) {
+      var signed = a.direction === 'add' ? a.amount : -a.amount;
+      if (a.currency === 'usd') usd += signed; else syp += signed;
+    });
+    return { usd: usd, syp: syp };
+  }
+
+  function computeDayStats(txns) {
+    var buyVolume = 0, sellVolume = 0, profit = 0, cashVariance = 0;
+    txns.forEach(function (t) {
+      if (t.type === 'buy') buyVolume += t.amountUsd;
+      else {
+        sellVolume += t.amountUsd;
+        profit += (t.sellRateAtTime - t.buyRateAtTime) * t.amountUsd;
+      }
+      // Denomination-rounding variance, normalized to the office's actual
+      // gain/loss regardless of buy/sell direction (see updateVarianceDisplay).
+      if (t.varianceSyp) cashVariance += (t.type === 'sell' ? t.varianceSyp : -t.varianceSyp);
+    });
+    return { buyVolume: buyVolume, sellVolume: sellVolume, profit: profit, cashVariance: cashVariance, count: txns.length };
+  }
+
   function isEditableTxn(t) { return t.at >= state.dayStart.startedAt; }
+
+  function recalcTodayLedger() {
+    var start = state.dayStart.startedAt;
+    var events = [];
+    state.transactions.forEach(function (t) { if (t.at >= start) events.push({ at: t.at, kind: 'txn', ref: t }); });
+    state.adjustments.forEach(function (a) { if (a.at >= start) events.push({ at: a.at, kind: 'adj', ref: a }); });
+    events.sort(function (a, b) { return a.at < b.at ? -1 : (a.at > b.at ? 1 : 0); });
+
+    var usd = state.dayStart.usd, syp = state.dayStart.syp;
+    events.forEach(function (e) {
+      if (e.kind === 'txn') {
+        var t = e.ref;
+        if (t.type === 'buy') { usd += t.amountUsd; syp -= t.amountSyp; }
+        else { usd -= t.amountUsd; syp += t.amountSyp; }
+        usd = Number(usd.toFixed(2));
+        syp = Number(syp.toFixed(2));
+        t.usdAfter = usd;
+        t.sypAfter = syp;
+      } else {
+        var a = e.ref;
+        var signed = a.direction === 'add' ? a.amount : -a.amount;
+        if (a.currency === 'usd') usd = Number((usd + signed).toFixed(2));
+        else syp = Number((syp + signed).toFixed(2));
+      }
+    });
+    state.reserves.usd = usd;
+    state.reserves.syp = syp;
+  }
+
+  function applyLedgerChange(mutateFn) {
+    var snapshot = JSON.stringify({
+      transactions: state.transactions, adjustments: state.adjustments,
+      reserves: state.reserves, dayStart: state.dayStart,
+    });
+    mutateFn();
+    recalcTodayLedger();
+    if (state.reserves.usd < -0.005 || state.reserves.syp < -0.5) {
+      var restored = JSON.parse(snapshot);
+      state.transactions = restored.transactions;
+      state.adjustments = restored.adjustments;
+      state.reserves = restored.reserves;
+      state.dayStart = restored.dayStart;
+      return false;
+    }
+    return true;
+  }
 
   /* ================= render: shell ================= */
   function renderSessionBadges() {
@@ -887,7 +966,8 @@
 
   /* ================= render: stat cards ================= */
   function renderStatCards() {
-    var stats = state.todayStats;
+    var txns = todaysTxns();
+    var stats = computeDayStats(txns);
     var mount = document.getElementById('stat-cards-mount');
     var profitTone = stats.profit > 0 ? 'text-teal-bright' : (stats.profit < 0 ? 'text-rose-bright' : 'text-paper');
 
@@ -936,9 +1016,21 @@
           '<input id="txn-amount" name="amount" type="number" min="0" step="0.01" required placeholder="0.00" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono mb-3" />' +
           '<label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('noteOptionalLabel')) + '</label>' +
           '<input id="txn-note" name="note" type="text" maxlength="60" placeholder="' + esc(t('notePlaceholder')) + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm mb-4" />' +
-          '<div class="panel-raised rounded-lg px-4 py-3 mb-4 flex items-center justify-between">' +
+          '<div class="panel-raised rounded-lg px-4 py-3 mb-3 flex items-center justify-between">' +
             '<span class="text-xs text-paper-dim">' + esc(txnType === 'buy' ? t('payCustomer') : t('customerPays')) + '</span>' +
             '<span id="txn-computed" class="font-mono text-lg font-tabular ' + (txnType === 'buy' ? 'text-brass-bright' : 'text-teal-bright') + '" dir="ltr">£S 0</span>' +
+          '</div>' +
+          '<label class="flex items-center gap-2 text-xs text-paper-dim mb-3 cursor-pointer select-none">' +
+            '<input type="checkbox" id="txn-adjust-toggle" class="w-4 h-4 rounded accent-brass" />' +
+            '<span>' + esc(t('adjustCashToggleLabel')) + '</span>' +
+          '</label>' +
+          '<div id="txn-adjust-panel" class="hidden panel-raised rounded-lg p-3 mb-4 space-y-2">' +
+            '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim">' + esc(t('actualAmountLabel')) + '</label>' +
+            '<input id="txn-actual-amount" type="number" min="0" step="1" dir="ltr" class="field-input w-full rounded-lg px-3 py-2 text-sm font-mono" />' +
+            '<div class="flex items-center justify-between text-xs pt-1">' +
+              '<span class="text-paper-dim">' + esc(t('varianceLabel')) + '</span>' +
+              '<span id="txn-variance-display" class="font-mono" dir="ltr">£S 0</span>' +
+            '</div>' +
           '</div>' +
           '<div id="terminal-error" class="hidden text-rose-bright text-xs bg-rose/10 border border-rose/30 rounded-lg px-3 py-2 mb-4"></div>' +
           '<button type="submit" class="btn ' + (txnType === 'buy' ? 'btn-brass' : 'btn-teal') + ' w-full rounded-lg py-3 text-sm">' + esc(t('executeBtn')) + '</button>' +
@@ -948,16 +1040,46 @@
 
     var amountInput = document.getElementById('txn-amount');
     amountInput.addEventListener('input', updateTerminalPreview);
+    document.getElementById('txn-adjust-toggle').addEventListener('change', function (e) {
+      document.getElementById('txn-adjust-panel').classList.toggle('hidden', !e.target.checked);
+      if (e.target.checked) {
+        var actualInput = document.getElementById('txn-actual-amount');
+        if (!actualInput.value) actualInput.value = calculatedSypNow();
+      }
+      updateVarianceDisplay();
+    });
+    document.getElementById('txn-actual-amount').addEventListener('input', updateVarianceDisplay);
     updateTerminalPreview();
+  }
+
+  function calculatedSypNow() {
+    var amount = parseFloat((document.getElementById('txn-amount') || {}).value) || 0;
+    var rate = txnType === 'buy' ? state.rates.buy : state.rates.sell;
+    return Number((amount * rate).toFixed(2));
   }
 
   function updateTerminalPreview() {
     var amountInput = document.getElementById('txn-amount');
     var computed = document.getElementById('txn-computed');
     if (!amountInput || !computed) return;
-    var amount = parseFloat(amountInput.value) || 0;
-    var rate = txnType === 'buy' ? state.rates.buy : state.rates.sell;
-    computed.textContent = fmtSyp(amount * rate);
+    computed.textContent = fmtSyp(calculatedSypNow());
+    updateVarianceDisplay();
+  }
+
+  function updateVarianceDisplay() {
+    var toggle = document.getElementById('txn-adjust-toggle');
+    var display = document.getElementById('txn-variance-display');
+    if (!toggle || !display) return;
+    if (!toggle.checked) { display.textContent = fmtSypSigned(0); display.className = 'font-mono text-paper-dim'; return; }
+    var actual = parseFloat(document.getElementById('txn-actual-amount').value) || 0;
+    var variance = Number((actual - calculatedSypNow()).toFixed(2));
+    // Sign meaning flips by direction: paying out more than calculated (buy) is a
+    // loss, but receiving more than calculated (sell) is a gain — normalize to the
+    // office's actual gain/loss for coloring, while the number itself stays the
+    // literal "actual − calculated" difference shown elsewhere (ledger, day close).
+    var officeGain = txnType === 'sell' ? variance : -variance;
+    display.textContent = fmtSypSigned(variance);
+    display.className = 'font-mono ' + (officeGain > 0 ? 'text-teal-bright' : officeGain < 0 ? 'text-rose-bright' : 'text-paper-dim');
   }
 
   /* ================= render: transactions table ================= */
@@ -975,6 +1097,13 @@
     var isAdmin = session.role === 'admin';
     body.innerHTML = list.map(function (t2) {
       var editedTag = t2.editedAt ? ' <span class="text-paper-dim text-[10px]" title="' + esc(t('editedTooltip', { time: fmtDateTime(t2.editedAt), name: t2.editedBy })) + '">' + esc(t('editedTag')) + '</span>' : '';
+      var adjustedTag = '';
+      if (t2.varianceSyp) {
+        var tone = t2.varianceSyp > 0 ? 'text-brass-bright' : 'text-rose-bright';
+        adjustedTag = ' <span class="badge" style="background:rgba(226,87,76,0.1); border:1px solid rgba(226,87,76,0.35); color:#F1857C;" title="' +
+          esc(t('adjustedTooltip', { calculated: fmtSyp(t2.calculatedSyp), actual: fmtSyp(t2.amountSyp), variance: fmtSypSigned(t2.varianceSyp) })) +
+          '">' + esc(t('adjustedTag')) + '</span>';
+      }
       var actionsCell = '';
       if (isAdmin) {
         actionsCell = isEditableTxn(t2)
@@ -984,7 +1113,7 @@
       return (
         '<tr>' +
           '<td dir="ltr">' + fmtTime(t2.at) + editedTag + '</td>' +
-          '<td><span class="badge ' + (t2.type === 'buy' ? 'badge-buy' : 'badge-sell') + '">' + esc(t2.type === 'buy' ? t('typeBuy') : t('typeSell')) + '</span></td>' +
+          '<td><span class="badge ' + (t2.type === 'buy' ? 'badge-buy' : 'badge-sell') + '">' + esc(t2.type === 'buy' ? t('typeBuy') : t('typeSell')) + '</span>' + adjustedTag + '</td>' +
           '<td class="num text-brass-bright">' + fmtUsd(t2.amountUsd) + '</td>' +
           '<td class="num">' + fmtRate(t2.rateApplied) + '</td>' +
           '<td class="num text-teal-bright">' + fmtSyp(t2.amountSyp) + '</td>' +
@@ -1020,8 +1149,9 @@
   function renderDayClose() {
     var mount = document.getElementById('dayclose-mount');
     if (!mount) return;
-    var stats = state.todayStats;
-    var adj = state.adjustmentTotals;
+    var txns = todaysTxns();
+    var stats = computeDayStats(txns);
+    var adj = computeAdjustmentTotals(todaysAdjustments());
     var ds = state.dayStart;
 
     mount.innerHTML =
@@ -1053,6 +1183,7 @@
           summaryRow(t('rowTradesToday'), String(stats.count)) +
           summaryRow(t('rowAdjUsd'), fmtUsdSigned(adj.usd)) +
           summaryRow(t('rowAdjSyp'), fmtSypSigned(adj.syp)) +
+          summaryRow(t('rowCashVariance'), fmtSypSigned(stats.cashVariance)) +
         '</div>' +
         '<div class="panel-raised rounded-lg px-4 py-3 flex items-center justify-between mb-5">' +
           '<span class="text-xs text-paper-dim uppercase tracking-wide">' + esc(t('totalProfitLoss')) + '</span>' +
@@ -1065,7 +1196,7 @@
   function renderReserveAdjust() {
     var mount = document.getElementById('reserve-adjust-mount');
     if (!mount) return;
-    var recent = state.adjustments.slice(0, 12); // already newest-first from the API
+    var recent = todaysAdjustments().slice().reverse().slice(0, 12);
     var currencyLabel = adjustCurrency === 'usd' ? t('currencyUsd') : t('currencySyp');
 
     mount.innerHTML =
@@ -1150,7 +1281,7 @@
     var body = document.getElementById('users-table-body');
     if (!body) return;
     body.innerHTML = state.users.map(function (u) {
-      var isSelf = u.username === session.username;
+      var isSelf = u.id === session.userId;
       var lastAdmin = u.role === 'admin' && state.users.filter(function (x) { return x.role === 'admin'; }).length <= 1;
       var canDelete = !isSelf && !lastAdmin;
       return (
@@ -1194,55 +1325,6 @@
     document.getElementById('footer-day-started').textContent = t('dayStartedFooter', { time: fmtDateTime(state.dayStart.startedAt) });
   }
 
-  // Pulls the latest shared state from the server. Called after every
-  // mutation and on a background poll — the poll is also what detects a
-  // session getting replaced by a login elsewhere (apiFetch's 401 handling).
-  async function refreshState() {
-    var res = await apiFetch('/state', { method: 'GET' });
-    if (!res.ok) return false;
-    var d = res.data;
-    state.rates = d.rates;
-    state.reserves = { usd: d.ledgerState.reservesUsd, syp: d.ledgerState.reservesSyp };
-    state.dayStart = {
-      usd: d.ledgerState.dayStartUsd, syp: d.ledgerState.dayStartSyp,
-      startedAt: d.ledgerState.dayStartStartedAt, startedBy: d.ledgerState.dayStartStartedBy,
-    };
-    state.todayStats = d.todayStats;
-    state.transactions = d.recentTransactions;
-    state.rateHistory = d.rateHistory;
-
-    if (session && session.role === 'admin') {
-      var adminRes = await apiFetch('/admin/state', { method: 'GET' });
-      if (adminRes.ok) {
-        state.users = adminRes.data.users;
-        state.loginLog = adminRes.data.loginLog;
-        state.dayHistory = adminRes.data.dayHistory;
-        state.adjustments = adminRes.data.todayAdjustments;
-        state.adjustmentTotals = adminRes.data.adjustmentTotals;
-      }
-    }
-    return true;
-  }
-
-  function onVisibilityChange() {
-    if (document.visibilityState === 'visible' && session) {
-      refreshState().then(function (ok) { if (ok) renderAll(); });
-    }
-  }
-
-  function startPolling() {
-    stopPolling();
-    pollTimer = setInterval(function () {
-      refreshState().then(function (ok) { if (ok) renderAll(); });
-    }, 15000);
-    document.addEventListener('visibilitychange', onVisibilityChange);
-  }
-
-  function stopPolling() {
-    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-    document.removeEventListener('visibilitychange', onVisibilityChange);
-  }
-
   /* ================= actions: auth ================= */
   async function handleLogin(form) {
     var username = form.username.value.trim();
@@ -1250,23 +1332,23 @@
     var errEl = document.getElementById('login-error');
     errEl.classList.add('hidden');
 
-    var res = await apiFetch('/login', { method: 'POST', body: { username: username, password: password } });
-    if (!res.ok) {
-      errEl.textContent = res.data.error || t('loginError');
+    var user = state.users.find(function (u) { return u.username.toLowerCase() === username.toLowerCase(); });
+    var hash = await hashPassword(password);
+    if (!user || user.passwordHash !== hash) {
+      errEl.textContent = t('loginError');
       errEl.classList.remove('hidden');
       return;
     }
 
-    session = { token: res.data.token, username: res.data.user.username, role: res.data.user.role };
+    session = { userId: user.id, username: user.username, role: user.role, loginAt: nowIso() };
     saveSession();
-    await refreshState();
+    user.lastLoginAt = nowIso();
+    state.loginLog.push({ id: uid(), username: user.username, at: nowIso() });
+    persist();
     showApp();
-    startPolling();
   }
 
-  async function handleLogout() {
-    stopPolling();
-    apiFetch('/logout', { method: 'POST' }).catch(function () {});
+  function handleLogout() {
     clearSession();
     showLogin();
   }
@@ -1286,7 +1368,7 @@
   }
 
   /* ================= actions: rates ================= */
-  async function handleUpdateRates(form) {
+  function handleUpdateRates(form) {
     var buy = parseFloat(form.buy.value);
     var sell = parseFloat(form.sell.value);
     var errEl = document.getElementById('rate-form-error');
@@ -1303,19 +1385,18 @@
       return;
     }
 
-    var res = await apiFetch('/rates', { method: 'POST', body: { buy: buy, sell: sell } });
-    if (!res.ok) {
-      errEl.textContent = res.data.error || t('rateErrorPositive');
-      errEl.classList.remove('hidden');
-      return;
-    }
-    await refreshState();
+    state.rateHistory.push({
+      id: uid(), prevBuy: state.rates.buy, prevSell: state.rates.sell,
+      buy: buy, sell: sell, changedBy: session.username, changedAt: nowIso(),
+    });
+    state.rates = { buy: buy, sell: sell, updatedAt: nowIso(), updatedBy: session.username };
+    persist();
     renderAll();
     toast(t('rateUpdatedToast', { buy: fmtRate(buy), sell: fmtRate(sell) }));
   }
 
   /* ================= actions: transactions ================= */
-  async function handleExecuteTxn(form) {
+  function handleExecuteTxn(form) {
     var amount = parseFloat(form.amount.value);
     var note = form.note.value.trim();
     var errEl = document.getElementById('terminal-error');
@@ -1328,16 +1409,56 @@
     }
 
     var rate = txnType === 'buy' ? state.rates.buy : state.rates.sell;
-    var res = await apiFetch('/transactions', { method: 'POST', body: { type: txnType, amountUsd: amount, note: note } });
-    if (!res.ok) {
-      errEl.textContent = res.data.error || t('terminalErrorAmount');
+    var calculatedSyp = Number((amount * rate).toFixed(2));
+
+    var isAdjusted = document.getElementById('txn-adjust-toggle').checked;
+    var actualSyp = calculatedSyp;
+    if (isAdjusted) {
+      actualSyp = parseFloat(document.getElementById('txn-actual-amount').value);
+      if (!(actualSyp > 0)) {
+        errEl.textContent = t('terminalErrorActualAmount');
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (!note) {
+        errEl.textContent = t('terminalErrorAdjustReason');
+        errEl.classList.remove('hidden');
+        return;
+      }
+    }
+    var varianceSyp = Number((actualSyp - calculatedSyp).toFixed(2));
+
+    if (txnType === 'buy' && actualSyp > state.reserves.syp) {
+      errEl.textContent = t('terminalErrorSyp', { amount: fmtSyp(actualSyp) });
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if (txnType === 'sell' && amount > state.reserves.usd) {
+      errEl.textContent = t('terminalErrorUsd', { amount: fmtUsd(amount) });
       errEl.classList.remove('hidden');
       return;
     }
 
-    await refreshState();
+    if (txnType === 'buy') { state.reserves.usd += amount; state.reserves.syp -= actualSyp; }
+    else { state.reserves.usd -= amount; state.reserves.syp += actualSyp; }
+    state.reserves.usd = clamp0(Number(state.reserves.usd.toFixed(2)));
+    state.reserves.syp = clamp0(Number(state.reserves.syp.toFixed(2)));
+
+    state.transactions.unshift({
+      id: uid(), type: txnType, amountUsd: amount, rateApplied: rate,
+      buyRateAtTime: state.rates.buy, sellRateAtTime: state.rates.sell,
+      amountSyp: actualSyp, calculatedSyp: calculatedSyp, varianceSyp: varianceSyp,
+      usdAfter: state.reserves.usd, sypAfter: state.reserves.syp,
+      operator: session.username, note: note, at: nowIso(),
+    });
+
+    persist();
     renderAll();
-    toast(t(txnType === 'buy' ? 'boughtToast' : 'soldToast', { amount: fmtUsd(amount), rate: fmtRate(rate) }));
+    if (varianceSyp !== 0) {
+      toast(t('txnAdjustedToast', { variance: fmtSypSigned(varianceSyp) }));
+    } else {
+      toast(t(txnType === 'buy' ? 'boughtToast' : 'soldToast', { amount: fmtUsd(amount), rate: fmtRate(rate) }));
+    }
   }
 
   function handleDeleteTxn(id) {
@@ -1350,10 +1471,12 @@
       body: t('deleteTransactionBody', { type: (t2.type === 'buy' ? t('typeBuy') : t('typeSell')), amount: fmtUsd(t2.amountUsd), time: fmtDateTime(t2.at) }),
       confirmLabel: t('deleteTransactionConfirmBtn'),
       danger: true,
-      onConfirm: async function () {
-        var res = await apiFetch('/transactions/' + id, { method: 'DELETE' });
-        if (!res.ok) { toast(res.data.error || t('cannotDeleteNegativeToast'), 'error'); return; }
-        await refreshState();
+      onConfirm: function () {
+        var ok = applyLedgerChange(function () {
+          state.transactions = state.transactions.filter(function (x) { return x.id !== id; });
+        });
+        if (!ok) { toast(t('cannotDeleteNegativeToast'), 'error'); return; }
+        persist();
         renderAll();
         toast(t('transactionDeletedToast'));
       },
@@ -1405,7 +1528,7 @@
       root.querySelectorAll('[data-action="edit-set-type"]').forEach(function (btn) {
         btn.addEventListener('click', function () { editType = btn.dataset.type; paint(); });
       });
-      root.querySelector('#edit-txn-form').addEventListener('submit', async function (e) {
+      root.querySelector('#edit-txn-form').addEventListener('submit', function (e) {
         e.preventDefault();
         var form = e.target;
         var amount = parseFloat(form.amount.value);
@@ -1420,17 +1543,24 @@
           return;
         }
 
-        var res = await apiFetch('/transactions/' + id, {
-          method: 'PUT',
-          body: { type: editType, amountUsd: amount, rate: rate, note: note },
+        var ok = applyLedgerChange(function () {
+          t2.type = editType;
+          t2.amountUsd = amount;
+          t2.rateApplied = rate;
+          t2.amountSyp = Number((amount * rate).toFixed(2));
+          t2.note = note;
+          if (editType === 'buy') t2.buyRateAtTime = rate; else t2.sellRateAtTime = rate;
+          t2.editedAt = nowIso();
+          t2.editedBy = session.username;
         });
-        if (!res.ok) {
-          errEl.textContent = res.data.error || t('editErrorNegative');
+
+        if (!ok) {
+          errEl.textContent = t('editErrorNegative');
           errEl.classList.remove('hidden');
           return;
         }
 
-        await refreshState();
+        persist();
         closeModal();
         renderAll();
         toast(t('transactionUpdatedToast'));
@@ -1450,17 +1580,17 @@
       title: t('setOpeningConfirmTitle'),
       body: t('setOpeningConfirmBody', { usd: fmtUsd(usd), syp: fmtSyp(syp) }),
       confirmLabel: t('setBalancesBtn'),
-      onConfirm: async function () {
-        var res = await apiFetch('/opening', { method: 'POST', body: { usd: usd, syp: syp } });
-        if (!res.ok) { toast(res.data.error || t('enterValidAmounts'), 'error'); return; }
-        await refreshState();
+      onConfirm: function () {
+        state.reserves = { usd: usd, syp: syp };
+        state.dayStart = { usd: usd, syp: syp, startedAt: nowIso(), startedBy: session.username };
+        persist();
         renderAll();
         toast(t('openingBalancesSetToast'));
       },
     });
   }
 
-  async function handleAdjustReserve(form) {
+  function handleAdjustReserve(form) {
     var amount = parseFloat(form.amount.value);
     var reason = form.reason.value.trim();
     var errEl = document.getElementById('adjust-reserve-error');
@@ -1472,33 +1602,46 @@
       return;
     }
 
-    var res = await apiFetch('/adjustments', {
-      method: 'POST',
-      body: { currency: adjustCurrency, direction: adjustDirection, amount: amount, reason: reason },
-    });
-    if (!res.ok) {
-      errEl.textContent = res.data.error || t('adjErrorAmount');
+    var current = state.reserves[adjustCurrency];
+    if (adjustDirection === 'remove' && amount > current) {
+      var fmt = adjustCurrency === 'usd' ? fmtUsd : fmtSyp;
+      errEl.textContent = t('adjErrorInsufficient', { currency: (adjustCurrency === 'usd' ? t('currencyUsd') : t('currencySyp')), available: fmt(current) });
       errEl.classList.remove('hidden');
       return;
     }
 
-    await refreshState();
+    state.reserves[adjustCurrency] = adjustDirection === 'add' ? current + amount : current - amount;
+    state.reserves[adjustCurrency] = Number(state.reserves[adjustCurrency].toFixed(2));
+
+    state.adjustments.push({
+      id: uid(), currency: adjustCurrency, direction: adjustDirection, amount: amount,
+      reason: reason, by: session.username, at: nowIso(),
+    });
+
+    persist();
     renderAll();
     var fmtOut = adjustCurrency === 'usd' ? fmtUsd(amount) : fmtSyp(amount);
     toast(t(adjustDirection === 'add' ? 'adjAddedToast' : 'adjRemovedToast', { amount: fmtOut }));
   }
 
   function handleCloseDay() {
-    var stats = state.todayStats;
+    var txns = todaysTxns();
+    var stats = computeDayStats(txns);
     confirmModal({
       title: t('closeDayConfirmTitle'),
       body: t('closeDayConfirmBody', { count: tradeCountLabel(stats.count), profit: fmtSypSigned(stats.profit) }),
       confirmLabel: t('closeDayConfirmBtn'),
       danger: true,
-      onConfirm: async function () {
-        var res = await apiFetch('/day-close', { method: 'POST' });
-        if (!res.ok) { toast(res.data.error || t('dayClosedToast'), 'error'); return; }
-        await refreshState();
+      onConfirm: function () {
+        state.dayHistory.push({
+          id: uid(), closedAt: nowIso(), closedBy: session.username,
+          openedAt: state.dayStart.startedAt, openUsd: state.dayStart.usd, openSyp: state.dayStart.syp,
+          closeUsd: state.reserves.usd, closeSyp: state.reserves.syp,
+          buyVolumeUsd: stats.buyVolume, sellVolumeUsd: stats.sellVolume,
+          txnCount: stats.count, profit: stats.profit, cashVariance: stats.cashVariance,
+        });
+        state.dayStart = { usd: state.reserves.usd, syp: state.reserves.syp, startedAt: nowIso(), startedBy: session.username };
+        persist();
         renderAll();
         toast(t('dayClosedToast'));
       },
@@ -1514,40 +1657,45 @@
     errEl.classList.add('hidden');
 
     if (username.length < 3) { errEl.textContent = t('usernameTooShort'); errEl.classList.remove('hidden'); return; }
+    if (state.users.some(function (u) { return u.username.toLowerCase() === username.toLowerCase(); })) {
+      errEl.textContent = t('usernameTaken'); errEl.classList.remove('hidden'); return;
+    }
     if (password.length < 4) { errEl.textContent = t('passwordTooShort'); errEl.classList.remove('hidden'); return; }
 
-    var res = await apiFetch('/users', { method: 'POST', body: { username: username, password: password, role: role } });
-    if (!res.ok) { errEl.textContent = res.data.error || t('usernameTaken'); errEl.classList.remove('hidden'); return; }
-
-    await refreshState();
+    var hash = await hashPassword(password);
+    state.users.push({ id: uid(), username: username, passwordHash: hash, role: role, createdAt: nowIso(), lastLoginAt: null });
+    persist();
     renderAdmin();
     form.reset();
     toast(t('accountCreatedToast', { username: username }));
   }
 
-  async function handleToggleRole(id) {
+  function handleToggleRole(id) {
     var user = state.users.find(function (u) { return u.id === id; });
     if (!user) return;
-    var res = await apiFetch('/users/' + id + '/role', { method: 'PATCH' });
-    if (!res.ok) { toast(res.data.error || t('atLeastOneAdminToast'), 'error'); return; }
-    await refreshState();
+    var admins = state.users.filter(function (u) { return u.role === 'admin'; });
+    if (user.role === 'admin' && admins.length <= 1) { toast(t('atLeastOneAdminToast'), 'error'); return; }
+    user.role = user.role === 'admin' ? 'staff' : 'admin';
+    persist();
     renderAdmin();
-    toast(t('roleChangedToast', { username: user.username, role: (res.data.role === 'admin' ? t('roleAdmin') : t('roleStaff')) }));
+    toast(t('roleChangedToast', { username: user.username, role: (user.role === 'admin' ? t('roleAdmin') : t('roleStaff')) }));
   }
 
   function handleDeleteUser(id) {
     var user = state.users.find(function (u) { return u.id === id; });
     if (!user) return;
+    if (user.id === session.userId) { toast(t('cannotDeleteSelfToast'), 'error'); return; }
+    var admins = state.users.filter(function (u) { return u.role === 'admin'; });
+    if (user.role === 'admin' && admins.length <= 1) { toast(t('atLeastOneAdminToast'), 'error'); return; }
 
     confirmModal({
       title: t('removeStaffTitle'),
       body: t('removeStaffBody', { username: esc(user.username) }),
       confirmLabel: t('removeBtn'),
       danger: true,
-      onConfirm: async function () {
-        var res = await apiFetch('/users/' + id, { method: 'DELETE' });
-        if (!res.ok) { toast(res.data.error || t('atLeastOneAdminToast'), 'error'); return; }
-        await refreshState();
+      onConfirm: function () {
+        state.users = state.users.filter(function (u) { return u.id !== id; });
+        persist();
         renderAdmin();
         toast(t('accountRemovedToast'));
       },
@@ -1578,15 +1726,14 @@
     root.querySelector('#reset-pw-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       var pw = e.target.password.value;
-      var errE = document.getElementById('reset-pw-error');
-      errE.classList.add('hidden');
       if (pw.length < 4) {
+        var errE = document.getElementById('reset-pw-error');
         errE.textContent = t('passwordTooShort');
         errE.classList.remove('hidden');
         return;
       }
-      var res = await apiFetch('/users/' + id + '/password', { method: 'POST', body: { password: pw } });
-      if (!res.ok) { errE.textContent = res.data.error || t('passwordTooShort'); errE.classList.remove('hidden'); return; }
+      user.passwordHash = await hashPassword(pw);
+      persist();
       closeModal();
       toast(t('passwordUpdatedToast', { username: user.username }));
     });
@@ -1612,19 +1759,25 @@
       '</div>';
     root.querySelector('[data-action="modal-cancel"]').addEventListener('click', closeModal);
     root.querySelector('[data-action="modal-backdrop"]').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModal(); });
-    root.querySelector('#factory-reset-form').addEventListener('submit', async function (e) {
+    root.querySelector('#factory-reset-form').addEventListener('submit', function (e) {
       e.preventDefault();
       var val = e.target.confirm.value.trim().toUpperCase();
-      var errE = document.getElementById('factory-reset-error');
-      errE.classList.add('hidden');
       if (val !== 'RESET') {
+        var errE = document.getElementById('factory-reset-error');
         errE.textContent = t('typeResetError');
         errE.classList.remove('hidden');
         return;
       }
-      var res = await apiFetch('/factory-reset', { method: 'POST', body: { confirm: val } });
-      if (!res.ok) { errE.textContent = res.data.error || t('typeResetError'); errE.classList.remove('hidden'); return; }
-      await refreshState();
+      var t2 = nowIso();
+      state.transactions = [];
+      state.rateHistory = [];
+      state.dayHistory = [];
+      state.adjustments = [];
+      state.loginLog = [];
+      state.rates = { buy: 14850, sell: 15050, updatedAt: t2, updatedBy: session.username };
+      state.reserves = { usd: 5000, syp: 60000000 };
+      state.dayStart = { usd: 5000, syp: 60000000, startedAt: t2, startedBy: session.username };
+      persist();
       closeModal();
       renderAll();
       toast(t('allDataResetToast'));
@@ -1671,16 +1824,20 @@
     applyStaticI18n();
     renderLangToggle();
 
+    state = loadState();
+    if (!state) state = defaultState();
+    await ensureSeedAdmin();
+    persist();
+
+    session = loadSession();
     tickClock();
     setInterval(tickClock, 1000);
 
-    session = loadSession();
-    if (session && session.token) {
-      var ok = await refreshState();
-      if (ok) { showApp(); startPolling(); return; }
-      clearSession();
+    if (session && state.users.some(function (u) { return u.id === session.userId; })) {
+      showApp();
+    } else {
+      showLogin();
     }
-    showLogin();
   }
 
   boot();

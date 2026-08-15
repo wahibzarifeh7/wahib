@@ -16,9 +16,29 @@ function getRoute(event) {
   return path.replace(/\/+$/, '') || '/';
 }
 
+const CORS_HEADERS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-headers': 'authorization, content-type',
+  'access-control-allow-methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+};
+
+function withCors(response) {
+  response.headers = Object.assign({}, response.headers, CORS_HEADERS);
+  return response;
+}
+
 exports.handler = async (event) => {
   const method = event.httpMethod;
   const route = getRoute(event);
+
+  // Desktop build loads the app from a file:// origin, so cross-origin calls
+  // to the live API need CORS — harmless for the web build, which is same-origin.
+  if (method === 'OPTIONS') return withCors({ statusCode: 204, headers: {}, body: '' });
+
+  return withCors(await route_(event, method, route));
+};
+
+async function route_(event, method, route) {
   const segments = route.split('/').filter(Boolean); // e.g. ['users', ':id', 'role']
   const payload = http.parseBody(event);
 
@@ -72,4 +92,4 @@ exports.handler = async (event) => {
     console.error('API error', method, route, err);
     return http.serverError('Something went wrong. Please try again.');
   }
-};
+}

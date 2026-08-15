@@ -1,0 +1,42 @@
+{
+  "name": "wzexchange",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WZExchange — currency exchange desk desktop app",
+  "author": "WZExchange",
+  "main": "main.js",
+  "scripts": {
+    "prebuild": "node scripts/copy-app.js",
+    "start": "npm run prebuild && electron .",
+    "dist": "npm run prebuild && electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.wzexchange.app",
+    "productName": "WZExchange",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*"
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "WZExchange"
+    }
+  }
+}
