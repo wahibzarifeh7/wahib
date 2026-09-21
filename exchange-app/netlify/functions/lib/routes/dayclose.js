@@ -62,11 +62,11 @@ async function closeDay(user) {
 
     const { rows: dayRows } = await client.query(
       `insert into day_history
-        (closed_at, closed_by, opened_at, open_usd, open_syp, close_usd, close_syp, buy_volume_usd, sell_volume_usd, txn_count, profit)
-       values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        (closed_at, closed_by, opened_at, open_usd, open_syp, close_usd, close_syp, buy_volume_usd, sell_volume_usd, txn_count, profit, cash_variance)
+       values (now(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        returning *`,
       [user.username, ledger.dayStartStartedAt, ledger.dayStartUsd, ledger.dayStartSyp, ledger.reservesUsd, ledger.reservesSyp,
-        stats.buyVolume, stats.sellVolume, stats.count, stats.profit]
+        stats.buyVolume, stats.sellVolume, stats.count, stats.profit, stats.cashVariance]
     );
 
     const { rows: updated } = await client.query(

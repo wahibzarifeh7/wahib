@@ -2,7 +2,7 @@ const { num } = require('./db');
 
 function mapUser(r) {
   return {
-    id: r.id, username: r.username, role: r.role,
+    id: r.id, username: r.username, role: r.role, email: r.email || null,
     createdAt: r.created_at, lastLoginAt: r.last_login_at,
   };
 }
@@ -30,7 +30,9 @@ function mapTransaction(r) {
   return {
     id: r.id, type: r.type, amountUsd: num(r.amount_usd), rateApplied: num(r.rate_applied),
     buyRateAtTime: num(r.buy_rate_at_time), sellRateAtTime: num(r.sell_rate_at_time),
-    amountSyp: num(r.amount_syp), usdAfter: num(r.usd_after), sypAfter: num(r.syp_after),
+    amountSyp: num(r.amount_syp),
+    calculatedSyp: num(r.calculated_syp == null ? r.amount_syp : r.calculated_syp), varianceSyp: num(r.variance_syp || 0),
+    usdAfter: num(r.usd_after), sypAfter: num(r.syp_after),
     operator: r.operator, note: r.note, at: r.at, editedAt: r.edited_at, editedBy: r.edited_by,
   };
 }
@@ -47,7 +49,7 @@ function mapDayHistory(r) {
     id: r.id, closedAt: r.closed_at, closedBy: r.closed_by, openedAt: r.opened_at,
     openUsd: num(r.open_usd), openSyp: num(r.open_syp), closeUsd: num(r.close_usd), closeSyp: num(r.close_syp),
     buyVolumeUsd: num(r.buy_volume_usd), sellVolumeUsd: num(r.sell_volume_usd),
-    txnCount: r.txn_count, profit: num(r.profit),
+    txnCount: r.txn_count, profit: num(r.profit), cashVariance: num(r.cash_variance || 0),
   };
 }
 

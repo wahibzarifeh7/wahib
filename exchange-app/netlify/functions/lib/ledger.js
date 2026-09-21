@@ -40,15 +40,21 @@ function recalcTodayLedger(ledgerState, transactions, adjustments) {
 }
 
 function computeDayStats(transactions) {
-  let buyVolume = 0, sellVolume = 0, profit = 0;
+  let buyVolume = 0, sellVolume = 0, profit = 0, cashVariance = 0;
   transactions.forEach((t) => {
     if (t.type === 'buy') buyVolume += t.amountUsd;
     else {
       sellVolume += t.amountUsd;
       profit += (t.sellRateAtTime - t.buyRateAtTime) * t.amountUsd;
     }
+    // Denomination-rounding variance, normalized to the office's real gain/loss:
+    // receiving more than calculated (sell) is a gain, paying out more (buy) a loss.
+    if (t.varianceSyp) cashVariance += t.type === 'sell' ? t.varianceSyp : -t.varianceSyp;
   });
-  return { buyVolume: round2(buyVolume), sellVolume: round2(sellVolume), profit: round2(profit), count: transactions.length };
+  return {
+    buyVolume: round2(buyVolume), sellVolume: round2(sellVolume), profit: round2(profit),
+    cashVariance: round2(cashVariance), count: transactions.length,
+  };
 }
 
 function computeAdjustmentTotals(adjustments) {

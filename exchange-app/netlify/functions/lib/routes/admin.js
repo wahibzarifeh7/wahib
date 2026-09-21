@@ -23,23 +23,51 @@ async function getAdminState() {
   };
 }
 
+// Empty/missing means "no email". Anything else must look like an address.
+function normalizeEmail(value) {
+  const email = String(value == null ? '' : value).trim();
+  if (!email) return null;
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new ValidationError('Enter a valid email address.');
+  }
+  return email;
+}
+
+function uniqueViolation(err) {
+  if (!err || err.code !== '23505') return null;
+  return String(err.constraint || '').includes('email')
+    ? new ValidationError('That email is already used by another account.')
+    : new ValidationError('That username is already taken.');
+}
+
 async function createUser(actor, payload) {
   const username = String(payload.username || '').trim();
   const password = String(payload.password || '');
   const role = payload.role === 'admin' ? 'admin' : 'staff';
+  const email = normalizeEmail(payload.email);
   if (username.length < 3) throw new ValidationError('Username must be at least 3 characters.');
   if (password.length < 4) throw new ValidationError('Password must be at least 4 characters.');
 
   const hash = await hashPassword(password);
   try {
     const { rows } = await query(
-      'insert into users (username, password_hash, role) values ($1,$2,$3) returning *',
-      [username, hash, role]
+      'insert into users (username, password_hash, role, email) values ($1,$2,$3,$4) returning *',
+      [username, hash, role, email]
     );
     return mapUser(rows[0]);
   } catch (err) {
-    if (err && err.code === '23505') throw new ValidationError('That username is already taken.');
-    throw err;
+    throw uniqueViolation(err) || err;
+  }
+}
+
+async function setEmail(actor, id, payload) {
+  const email = normalizeEmail(payload.email);
+  try {
+    const { rows } = await query('update users set email = $1 where id = $2 returning *', [email, id]);
+    if (rows.length === 0) throw new ValidationError('Account not found.', 404);
+    return mapUser(rows[0]);
+  } catch (err) {
+    throw uniqueViolation(err) || err;
   }
 }
 
@@ -81,6 +109,9 @@ async function resetPassword(actor, id, payload) {
   const hash = await hashPassword(password);
   const { rows } = await query('update users set password_hash = $1 where id = $2 returning *', [hash, id]);
   if (rows.length === 0) throw new ValidationError('Account not found.', 404);
+  // A changed password must also end any session opened with the old one — except
+  // the admin's own, so changing your own password doesn't sign you out mid-action.
+  if (id !== actor.id) await query('delete from sessions where user_id = $1', [id]);
   return mapUser(rows[0]);
 }
 
@@ -107,4 +138,4 @@ async function factoryReset(actor, payload) {
   });
 }
 
-module.exports = { getAdminState, createUser, toggleRole, deleteUser, resetPassword, factoryReset };
+module.exports = { getAdminState, createUser, setEmail, toggleRole, deleteUser, resetPassword, factoryReset };

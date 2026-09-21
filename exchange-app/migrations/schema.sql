@@ -97,3 +97,26 @@ create table if not exists day_history (
   txn_count       integer not null,
   profit          numeric(20,2) not null
 );
+
+-- Password recovery -------------------------------------------------------
+-- Idempotent, so re-running migrations/seed.js upgrades an existing database.
+alter table users add column if not exists email citext unique;
+
+create table if not exists password_resets (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references users(id) on delete cascade,
+  token_hash text not null unique,
+  expires_at timestamptz not null,
+  used_at    timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists password_resets_user_idx on password_resets (user_id, created_at desc);
+
+-- Cash variance ------------------------------------------------------------
+-- amount_syp always holds the ACTUAL cash that changed hands (it drives the
+-- reserves). calculated_syp is what rate x amount said it should have been, and
+-- variance_syp is the difference, kept for the "adjusted" flag and day totals.
+alter table transactions add column if not exists calculated_syp numeric(20,2);
+alter table transactions add column if not exists variance_syp numeric(20,2) not null default 0;
+update transactions set calculated_syp = amount_syp where calculated_syp is null;
+alter table day_history add column if not exists cash_variance numeric(20,2) not null default 0;

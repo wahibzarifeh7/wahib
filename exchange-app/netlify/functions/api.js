@@ -49,6 +49,9 @@ async function route_(event, method, route) {
       return http.ok(result);
     }
 
+    if (method === 'POST' && route === '/forgot-password') return http.ok(await authRoutes.requestPasswordReset(payload));
+    if (method === 'POST' && route === '/reset-password') return http.ok(await authRoutes.resetPassword(payload));
+
     // ---- everything else requires a valid session ----
     const user = await authenticate(event);
     if (!user) return http.unauthorized('session_invalidated');
@@ -80,6 +83,9 @@ async function route_(event, method, route) {
     }
     if (method === 'DELETE' && segments[0] === 'users' && segments.length === 2) {
       return http.ok(await adminRoutes.deleteUser(user, segments[1]));
+    }
+    if (method === 'PATCH' && segments[0] === 'users' && segments[2] === 'email') {
+      return http.ok(await adminRoutes.setEmail(user, segments[1], payload));
     }
     if (method === 'POST' && segments[0] === 'users' && segments[2] === 'password') {
       return http.ok(await adminRoutes.resetPassword(user, segments[1], payload));

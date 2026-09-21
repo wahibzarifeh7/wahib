@@ -417,6 +417,7 @@
       terminalErrorUsd: 'Not enough USD in reserve to complete this trade ({amount} needed).',
       adjustCashToggleLabel: 'Actual cash given/received differs (denomination shortage)',
       actualAmountLabel: 'Actual amount (£S)', varianceLabel: 'Difference from calculated',
+      actualAmountOptionalHint: 'Leave empty to use the calculated amount.',
       terminalErrorActualAmount: 'Enter the actual amount handed over, greater than zero.',
       terminalErrorAdjustReason: 'Add a short note explaining the adjustment (e.g. no small notes available).',
       boughtToast: 'Bought {amount} at {rate}', soldToast: 'Sold {amount} at {rate}',
@@ -539,6 +540,7 @@
       terminalErrorUsd: 'لا يوجد رصيد كافٍ من الدولار لإتمام هذه الصفقة ({amount} مطلوب).',
       adjustCashToggleLabel: 'المبلغ الفعلي المُسلَّم/المُستلَم مختلف (نقص في فئة معينة)',
       actualAmountLabel: 'المبلغ الفعلي (ل.س)', varianceLabel: 'الفرق عن المبلغ المحسوب',
+      actualAmountOptionalHint: 'اتركه فارغًا لاستخدام المبلغ المحسوب.',
       terminalErrorActualAmount: 'أدخل المبلغ الفعلي الذي تم تسليمه، أكبر من الصفر.',
       terminalErrorAdjustReason: 'أضف ملاحظة قصيرة توضح سبب التعديل (مثال: لا تتوفر فئات نقدية صغيرة).',
       boughtToast: 'تم شراء {amount} بسعر {rate}', soldToast: 'تم بيع {amount} بسعر {rate}',
@@ -1511,6 +1513,11 @@
                 '<input name="rate" type="number" min="0" step="0.01" value="' + t2.rateApplied + '" dir="ltr" required class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono" />' +
               '</div>' +
               '<div>' +
+                '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('actualAmountLabel')) + '</label>' +
+                '<input name="actual" type="number" min="0" step="1" value="' + (t2.varianceSyp ? t2.amountSyp : '') + '" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono" />' +
+                '<p class="text-[11px] text-paper-dim mt-1">' + esc(t('actualAmountOptionalHint')) + '</p>' +
+              '</div>' +
+              '<div>' +
                 '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('noteLabel')) + '</label>' +
                 '<input name="note" type="text" maxlength="60" value="' + esc(t2.note || '') + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />' +
               '</div>' +
@@ -1543,11 +1550,32 @@
           return;
         }
 
+        // Empty 'actual' = use the calculated amount. A different actual is a cash
+        // adjustment and needs a note saying why.
+        var calculatedSyp = Number((amount * rate).toFixed(2));
+        var actualSyp = calculatedSyp;
+        var actualRaw = form.actual.value.trim();
+        if (actualRaw !== '') {
+          actualSyp = parseFloat(actualRaw);
+          if (!(actualSyp > 0)) {
+            errEl.textContent = t('terminalErrorActualAmount');
+            errEl.classList.remove('hidden');
+            return;
+          }
+          if (Number((actualSyp - calculatedSyp).toFixed(2)) !== 0 && !note) {
+            errEl.textContent = t('terminalErrorAdjustReason');
+            errEl.classList.remove('hidden');
+            return;
+          }
+        }
+
         var ok = applyLedgerChange(function () {
           t2.type = editType;
           t2.amountUsd = amount;
           t2.rateApplied = rate;
-          t2.amountSyp = Number((amount * rate).toFixed(2));
+          t2.amountSyp = actualSyp;
+          t2.calculatedSyp = calculatedSyp;
+          t2.varianceSyp = Number((actualSyp - calculatedSyp).toFixed(2));
           t2.note = note;
           if (editType === 'buy') t2.buyRateAtTime = rate; else t2.sellRateAtTime = rate;
           t2.editedAt = nowIso();

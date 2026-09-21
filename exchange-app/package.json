@@ -5,6 +5,7 @@
   "description": "WZExchange — Netlify Functions API",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "nodemailer": "^10.0.10",
     "pg": "^8.13.1"
   },
   "engines": {

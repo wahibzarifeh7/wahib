@@ -197,6 +197,41 @@
       </div>
       <div id="login-error" class="hidden text-rose-bright text-xs mb-4 bg-rose/10 border border-rose/30 rounded-lg px-3 py-2"></div>
       <button type="submit" class="btn btn-brass w-full rounded-lg py-2.5 text-sm" data-i18n="signIn">Sign In</button>
+      <div class="text-center mt-4">
+        <button type="button" data-action="show-forgot" class="text-xs text-paper-dim underline underline-offset-2 hover:text-brass-bright" data-i18n="forgotPasswordLink">Forgot password?</button>
+      </div>
+    </form>
+
+    <form id="forgot-form" data-form="forgot-password" class="hidden panel rounded-xl p-6 shadow-2xl shadow-black/40">
+      <h2 class="font-display text-lg mb-1" data-i18n="forgotTitle">Reset your password</h2>
+      <p class="text-xs text-paper-dim mb-4 leading-relaxed" data-i18n="forgotDesc">Enter your username or the email address on your account and we’ll send you a reset link.</p>
+      <div class="mb-4">
+        <label for="forgot-identifier" class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="forgotIdentifierLabel">Username or email</label>
+        <input id="forgot-identifier" name="identifier" type="text" autocomplete="username" required class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />
+      </div>
+      <div id="forgot-error" class="hidden text-rose-bright text-xs mb-4 bg-rose/10 border border-rose/30 rounded-lg px-3 py-2"></div>
+      <div id="forgot-success" class="hidden text-teal-bright text-xs mb-4 bg-teal/10 border border-teal/30 rounded-lg px-3 py-2"></div>
+      <button type="submit" class="btn btn-brass w-full rounded-lg py-2.5 text-sm" data-i18n="forgotSubmitBtn">Send reset link</button>
+      <div class="text-center mt-4">
+        <button type="button" data-action="show-login" class="text-xs text-paper-dim underline underline-offset-2 hover:text-brass-bright" data-i18n="backToSignIn">Back to sign in</button>
+      </div>
+    </form>
+
+    <form id="reset-form" data-form="reset-password" class="hidden panel rounded-xl p-6 shadow-2xl shadow-black/40">
+      <h2 class="font-display text-lg mb-4" data-i18n="resetTitle">Choose a new password</h2>
+      <div class="mb-4">
+        <label for="reset-new-password" class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="resetNewPasswordLabel">New password</label>
+        <input id="reset-new-password" name="password" type="password" autocomplete="new-password" required minlength="4" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />
+      </div>
+      <div class="mb-5">
+        <label for="reset-confirm-password" class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="resetConfirmLabel">Confirm password</label>
+        <input id="reset-confirm-password" name="confirm" type="password" autocomplete="new-password" required minlength="4" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />
+      </div>
+      <div id="reset-error" class="hidden text-rose-bright text-xs mb-4 bg-rose/10 border border-rose/30 rounded-lg px-3 py-2"></div>
+      <button type="submit" class="btn btn-brass w-full rounded-lg py-2.5 text-sm" data-i18n="resetSubmitBtn">Set new password</button>
+      <div class="text-center mt-4">
+        <button type="button" data-action="show-login" class="text-xs text-paper-dim underline underline-offset-2 hover:text-brass-bright" data-i18n="backToSignIn">Back to sign in</button>
+      </div>
     </form>
   </div>
 </div>
@@ -322,6 +357,10 @@
                 <input name="password" type="password" required minlength="4" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" placeholder="At least 4 characters" data-i18n-placeholder="passwordMinPlaceholder" />
               </div>
               <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="emailLabel">Email (for password recovery)</label>
+                <input name="email" type="email" autocomplete="off" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" placeholder="name@example.com" />
+              </div>
+              <div>
                 <label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="roleLabel">Role</label>
                 <select name="role" class="field-input w-full rounded-lg px-3 py-2.5 text-sm">
                   <option value="staff" data-i18n="staffOption">Staff</option>
@@ -348,7 +387,7 @@
             <div class="overflow-x-auto">
               <table class="ledger">
                 <thead>
-                  <tr><th data-i18n="colUsername">Username</th><th data-i18n="colRole">Role</th><th data-i18n="colCreated">Created</th><th data-i18n="colLastLogin">Last Login</th><th data-i18n="colActions">Actions</th></tr>
+                  <tr><th data-i18n="colUsername">Username</th><th data-i18n="colEmail">Email</th><th data-i18n="colRole">Role</th><th data-i18n="colCreated">Created</th><th data-i18n="colLastLogin">Last Login</th><th data-i18n="colActions">Actions</th></tr>
                 </thead>
                 <tbody id="users-table-body"></tbody>
               </table>
@@ -397,6 +436,28 @@
       loginError: 'Incorrect username or password.',
       sessionReplacedToast: 'You’ve been signed out because this account signed in on another device.',
       accountLockedToast: 'Too many failed attempts. Try again in a minute.',
+      adjustCashToggleLabel: 'Actual cash given/received differs (denomination shortage)',
+      actualAmountLabel: 'Actual amount (£S)', varianceLabel: 'Difference from calculated',
+      actualAmountOptionalHint: 'Leave empty to use the calculated amount.',
+      terminalErrorActualAmount: 'Enter the actual amount handed over, greater than zero.',
+      terminalErrorAdjustReason: 'Add a short note explaining the adjustment (e.g. no small notes available).',
+      txnAdjustedToast: 'Trade recorded with a cash adjustment ({variance}).',
+      adjustedTag: 'adjusted', adjustedTooltip: 'Calculated {calculated} · actually given/received {actual} · difference {variance}',
+      rowCashVariance: 'Cash Variance (denomination rounding)',
+      forgotPasswordLink: 'Forgot password?', forgotTitle: 'Reset your password',
+      forgotDesc: 'Enter your username or the email address on your account and we’ll send you a reset link.',
+      forgotIdentifierLabel: 'Username or email', forgotSubmitBtn: 'Send reset link',
+      forgotEnterIdentifier: 'Enter your username or email.',
+      forgotSentMessage: 'If that account exists and has an email on file, a reset link is on its way. It expires in 30 minutes.',
+      backToSignIn: 'Back to sign in', resetTitle: 'Choose a new password',
+      resetNewPasswordLabel: 'New password', resetConfirmLabel: 'Confirm password', resetSubmitBtn: 'Set new password',
+      passwordsDontMatch: 'Passwords don’t match.',
+      resetSuccessToast: 'Password updated. Sign in with your new password.',
+      emailLabel: 'Email (for password recovery)', colEmail: 'Email', editEmailBtn: 'Email',
+      editEmailTitle: 'Recovery Email',
+      editEmailBody: 'Set the email address used to reset the password for {username}. Leave it empty to remove it.',
+      saveEmailBtn: 'Save Email', emailUpdatedToast: 'Email updated for {username}.',
+      invalidEmail: 'Enter a valid email address.',
       navDashboard: 'Dashboard', navRateHistory: 'Rate History', navDayClose: 'Day Close', navAdmin: 'Admin',
       signOut: 'Sign Out', roleAdmin: 'admin', roleStaff: 'staff',
       rateBoardTitle: 'USD ⇆ SYP Rate Board',
@@ -514,6 +575,28 @@
       loginError: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
       sessionReplacedToast: 'تم تسجيل خروجك لأن هذا الحساب سُجّل دخوله من جهاز آخر.',
       accountLockedToast: 'محاولات فاشلة كثيرة جدًا. حاول مجددًا بعد دقيقة.',
+      adjustCashToggleLabel: 'المبلغ الفعلي المُسلَّم/المُستلَم مختلف (نقص في فئة معينة)',
+      actualAmountLabel: 'المبلغ الفعلي (ل.س)', varianceLabel: 'الفرق عن المبلغ المحسوب',
+      actualAmountOptionalHint: 'اتركه فارغًا لاستخدام المبلغ المحسوب.',
+      terminalErrorActualAmount: 'أدخل المبلغ الفعلي الذي تم تسليمه، أكبر من الصفر.',
+      terminalErrorAdjustReason: 'أضف ملاحظة قصيرة توضح سبب التعديل (مثال: لا تتوفر فئات نقدية صغيرة).',
+      txnAdjustedToast: 'تم تسجيل الصفقة مع تعديل نقدي ({variance}).',
+      adjustedTag: 'مُعدَّل', adjustedTooltip: 'المحسوب {calculated} · الفعلي {actual} · الفرق {variance}',
+      rowCashVariance: 'فرق نقدي (تقريب الفئات)',
+      forgotPasswordLink: 'نسيت كلمة المرور؟', forgotTitle: 'إعادة تعيين كلمة المرور',
+      forgotDesc: 'أدخل اسم المستخدم أو البريد الإلكتروني المرتبط بحسابك وسنرسل لك رابط إعادة التعيين.',
+      forgotIdentifierLabel: 'اسم المستخدم أو البريد الإلكتروني', forgotSubmitBtn: 'إرسال رابط إعادة التعيين',
+      forgotEnterIdentifier: 'أدخل اسم المستخدم أو البريد الإلكتروني.',
+      forgotSentMessage: 'إذا كان الحساب موجودًا وله بريد إلكتروني مسجّل، فقد أُرسل إليه رابط إعادة التعيين. تنتهي صلاحية الرابط خلال 30 دقيقة.',
+      backToSignIn: 'العودة إلى تسجيل الدخول', resetTitle: 'اختر كلمة مرور جديدة',
+      resetNewPasswordLabel: 'كلمة المرور الجديدة', resetConfirmLabel: 'تأكيد كلمة المرور', resetSubmitBtn: 'تعيين كلمة المرور الجديدة',
+      passwordsDontMatch: 'كلمتا المرور غير متطابقتين.',
+      resetSuccessToast: 'تم تحديث كلمة المرور. سجّل الدخول بكلمة المرور الجديدة.',
+      emailLabel: 'البريد الإلكتروني (لاستعادة كلمة المرور)', colEmail: 'البريد الإلكتروني', editEmailBtn: 'البريد',
+      editEmailTitle: 'بريد الاستعادة',
+      editEmailBody: 'عيّن البريد الإلكتروني المستخدم لإعادة تعيين كلمة مرور {username}. اتركه فارغًا لإزالته.',
+      saveEmailBtn: 'حفظ البريد', emailUpdatedToast: 'تم تحديث البريد الإلكتروني لـ {username}.',
+      invalidEmail: 'أدخل بريدًا إلكترونيًا صالحًا.',
       navDashboard: 'لوحة التحكم', navRateHistory: 'سجل الأسعار', navDayClose: 'إغلاق اليوم', navAdmin: 'الإدارة',
       signOut: 'تسجيل الخروج', roleAdmin: 'مسؤول', roleStaff: 'موظف',
       rateBoardTitle: 'لوحة أسعار الدولار ⇆ الليرة',
@@ -704,7 +787,7 @@
     rates: { buy: 0, sell: 0, updatedAt: nowIso(), updatedBy: '' },
     reserves: { usd: 0, syp: 0 },
     dayStart: { usd: 0, syp: 0, startedAt: nowIso(), startedBy: '' },
-    todayStats: { buyVolume: 0, sellVolume: 0, profit: 0, count: 0 },
+    todayStats: { buyVolume: 0, sellVolume: 0, profit: 0, cashVariance: 0, count: 0 },
     transactions: [],
     rateHistory: [],
     users: [],
@@ -936,9 +1019,21 @@
           '<input id="txn-amount" name="amount" type="number" min="0" step="0.01" required placeholder="0.00" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono mb-3" />' +
           '<label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('noteOptionalLabel')) + '</label>' +
           '<input id="txn-note" name="note" type="text" maxlength="60" placeholder="' + esc(t('notePlaceholder')) + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm mb-4" />' +
-          '<div class="panel-raised rounded-lg px-4 py-3 mb-4 flex items-center justify-between">' +
+          '<div class="panel-raised rounded-lg px-4 py-3 mb-3 flex items-center justify-between">' +
             '<span class="text-xs text-paper-dim">' + esc(txnType === 'buy' ? t('payCustomer') : t('customerPays')) + '</span>' +
             '<span id="txn-computed" class="font-mono text-lg font-tabular ' + (txnType === 'buy' ? 'text-brass-bright' : 'text-teal-bright') + '" dir="ltr">£S 0</span>' +
+          '</div>' +
+          '<label class="flex items-center gap-2 text-xs text-paper-dim mb-3 cursor-pointer select-none">' +
+            '<input type="checkbox" id="txn-adjust-toggle" class="w-4 h-4 rounded accent-brass" />' +
+            '<span>' + esc(t('adjustCashToggleLabel')) + '</span>' +
+          '</label>' +
+          '<div id="txn-adjust-panel" class="hidden panel-raised rounded-lg p-3 mb-4 space-y-2">' +
+            '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim">' + esc(t('actualAmountLabel')) + '</label>' +
+            '<input id="txn-actual-amount" type="number" min="0" step="1" dir="ltr" class="field-input w-full rounded-lg px-3 py-2 text-sm font-mono" />' +
+            '<div class="flex items-center justify-between text-xs pt-1">' +
+              '<span class="text-paper-dim">' + esc(t('varianceLabel')) + '</span>' +
+              '<span id="txn-variance-display" class="font-mono" dir="ltr">£S 0</span>' +
+            '</div>' +
           '</div>' +
           '<div id="terminal-error" class="hidden text-rose-bright text-xs bg-rose/10 border border-rose/30 rounded-lg px-3 py-2 mb-4"></div>' +
           '<button type="submit" class="btn ' + (txnType === 'buy' ? 'btn-brass' : 'btn-teal') + ' w-full rounded-lg py-3 text-sm">' + esc(t('executeBtn')) + '</button>' +
@@ -948,16 +1043,45 @@
 
     var amountInput = document.getElementById('txn-amount');
     amountInput.addEventListener('input', updateTerminalPreview);
+    document.getElementById('txn-adjust-toggle').addEventListener('change', function (e) {
+      document.getElementById('txn-adjust-panel').classList.toggle('hidden', !e.target.checked);
+      if (e.target.checked) {
+        var actualInput = document.getElementById('txn-actual-amount');
+        if (!actualInput.value) actualInput.value = calculatedSypNow();
+      }
+      updateVarianceDisplay();
+    });
+    document.getElementById('txn-actual-amount').addEventListener('input', updateVarianceDisplay);
     updateTerminalPreview();
+  }
+
+  function calculatedSypNow() {
+    var amount = parseFloat((document.getElementById('txn-amount') || {}).value) || 0;
+    var rate = txnType === 'buy' ? state.rates.buy : state.rates.sell;
+    return Number((amount * rate).toFixed(2));
   }
 
   function updateTerminalPreview() {
     var amountInput = document.getElementById('txn-amount');
     var computed = document.getElementById('txn-computed');
     if (!amountInput || !computed) return;
-    var amount = parseFloat(amountInput.value) || 0;
-    var rate = txnType === 'buy' ? state.rates.buy : state.rates.sell;
-    computed.textContent = fmtSyp(amount * rate);
+    computed.textContent = fmtSyp(calculatedSypNow());
+    updateVarianceDisplay();
+  }
+
+  function updateVarianceDisplay() {
+    var toggle = document.getElementById('txn-adjust-toggle');
+    var display = document.getElementById('txn-variance-display');
+    if (!toggle || !display) return;
+    if (!toggle.checked) { display.textContent = fmtSypSigned(0); display.className = 'font-mono text-paper-dim'; return; }
+    var actual = parseFloat(document.getElementById('txn-actual-amount').value) || 0;
+    var variance = Number((actual - calculatedSypNow()).toFixed(2));
+    // Sign meaning flips by direction: paying out more than calculated (buy) is a
+    // loss, receiving more than calculated (sell) is a gain — colour by the
+    // office's real gain/loss, while the number stays the literal actual − calculated.
+    var officeGain = txnType === 'sell' ? variance : -variance;
+    display.textContent = fmtSypSigned(variance);
+    display.className = 'font-mono ' + (officeGain > 0 ? 'text-teal-bright' : officeGain < 0 ? 'text-rose-bright' : 'text-paper-dim');
   }
 
   /* ================= render: transactions table ================= */
@@ -975,6 +1099,12 @@
     var isAdmin = session.role === 'admin';
     body.innerHTML = list.map(function (t2) {
       var editedTag = t2.editedAt ? ' <span class="text-paper-dim text-[10px]" title="' + esc(t('editedTooltip', { time: fmtDateTime(t2.editedAt), name: t2.editedBy })) + '">' + esc(t('editedTag')) + '</span>' : '';
+      var adjustedTag = '';
+      if (t2.varianceSyp) {
+        adjustedTag = ' <span class="badge" style="background:rgba(226,87,76,0.1); border:1px solid rgba(226,87,76,0.35); color:#F1857C;" title="' +
+          esc(t('adjustedTooltip', { calculated: fmtSyp(t2.calculatedSyp), actual: fmtSyp(t2.amountSyp), variance: fmtSypSigned(t2.varianceSyp) })) +
+          '">' + esc(t('adjustedTag')) + '</span>';
+      }
       var actionsCell = '';
       if (isAdmin) {
         actionsCell = isEditableTxn(t2)
@@ -984,7 +1114,7 @@
       return (
         '<tr>' +
           '<td dir="ltr">' + fmtTime(t2.at) + editedTag + '</td>' +
-          '<td><span class="badge ' + (t2.type === 'buy' ? 'badge-buy' : 'badge-sell') + '">' + esc(t2.type === 'buy' ? t('typeBuy') : t('typeSell')) + '</span></td>' +
+          '<td><span class="badge ' + (t2.type === 'buy' ? 'badge-buy' : 'badge-sell') + '">' + esc(t2.type === 'buy' ? t('typeBuy') : t('typeSell')) + '</span>' + adjustedTag + '</td>' +
           '<td class="num text-brass-bright">' + fmtUsd(t2.amountUsd) + '</td>' +
           '<td class="num">' + fmtRate(t2.rateApplied) + '</td>' +
           '<td class="num text-teal-bright">' + fmtSyp(t2.amountSyp) + '</td>' +
@@ -1053,6 +1183,7 @@
           summaryRow(t('rowTradesToday'), String(stats.count)) +
           summaryRow(t('rowAdjUsd'), fmtUsdSigned(adj.usd)) +
           summaryRow(t('rowAdjSyp'), fmtSypSigned(adj.syp)) +
+          summaryRow(t('rowCashVariance'), fmtSypSigned(stats.cashVariance || 0)) +
         '</div>' +
         '<div class="panel-raised rounded-lg px-4 py-3 flex items-center justify-between mb-5">' +
           '<span class="text-xs text-paper-dim uppercase tracking-wide">' + esc(t('totalProfitLoss')) + '</span>' +
@@ -1156,12 +1287,14 @@
       return (
         '<tr>' +
           '<td class="font-medium">' + esc(u.username) + (isSelf ? ' <span class="text-paper-dim text-xs">' + esc(t('youTag')) + '</span>' : '') + '</td>' +
+          '<td class="text-paper-dim" dir="ltr">' + (u.email ? esc(u.email) : '&mdash;') + '</td>' +
           '<td><span class="badge ' + (u.role === 'admin' ? 'badge-admin' : 'badge-staff') + '">' + esc(u.role === 'admin' ? t('roleAdmin') : t('roleStaff')) + '</span></td>' +
           '<td class="text-paper-dim" dir="ltr">' + fmtDateTime(u.createdAt) + '</td>' +
           '<td class="text-paper-dim" dir="ltr">' + (u.lastLoginAt ? fmtDateTime(u.lastLoginAt) : '&mdash;') + '</td>' +
           '<td>' +
             '<div class="flex items-center gap-1.5 flex-wrap">' +
               '<button class="btn btn-ghost rounded px-2.5 py-1 text-[11px]" data-action="toggle-role" data-id="' + u.id + '"' + (lastAdmin && u.role === 'admin' ? ' disabled title="' + esc(t('atLeastOneAdminTitle')) + '"' : '') + '>' + esc(u.role === 'admin' ? t('makeStaffBtn') : t('makeAdminBtn')) + '</button>' +
+              '<button class="btn btn-ghost rounded px-2.5 py-1 text-[11px]" data-action="edit-email" data-id="' + u.id + '">' + esc(t('editEmailBtn')) + '</button>' +
               '<button class="btn btn-ghost rounded px-2.5 py-1 text-[11px]" data-action="reset-password" data-id="' + u.id + '">' + esc(t('resetPasswordBtn')) + '</button>' +
               '<button class="btn btn-danger rounded px-2.5 py-1 text-[11px]" data-action="delete-user" data-id="' + u.id + '"' + (canDelete ? '' : ' disabled title="' + esc(t('cannotRemoveTitle')) + '"') + '>' + esc(t('deleteAccountBtn')) + '</button>' +
             '</div>' +
@@ -1283,6 +1416,9 @@
     document.getElementById('login-screen').classList.remove('hidden');
     document.getElementById('login-form').reset();
     document.getElementById('login-error').classList.add('hidden');
+    document.getElementById('forgot-form').reset();
+    ['forgot-error', 'forgot-success', 'reset-error'].forEach(function (id) { document.getElementById(id).classList.add('hidden'); });
+    showAuthView(resetToken ? 'reset' : 'login');
   }
 
   /* ================= actions: rates ================= */
@@ -1328,7 +1464,23 @@
     }
 
     var rate = txnType === 'buy' ? state.rates.buy : state.rates.sell;
-    var res = await apiFetch('/transactions', { method: 'POST', body: { type: txnType, amountUsd: amount, note: note } });
+    var body = { type: txnType, amountUsd: amount, note: note };
+    if (document.getElementById('txn-adjust-toggle').checked) {
+      var actualSyp = parseFloat(document.getElementById('txn-actual-amount').value);
+      if (!(actualSyp > 0)) {
+        errEl.textContent = t('terminalErrorActualAmount');
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (!note) {
+        errEl.textContent = t('terminalErrorAdjustReason');
+        errEl.classList.remove('hidden');
+        return;
+      }
+      body.actualSyp = actualSyp;
+    }
+
+    var res = await apiFetch('/transactions', { method: 'POST', body: body });
     if (!res.ok) {
       errEl.textContent = res.data.error || t('terminalErrorAmount');
       errEl.classList.remove('hidden');
@@ -1337,7 +1489,12 @@
 
     await refreshState();
     renderAll();
-    toast(t(txnType === 'buy' ? 'boughtToast' : 'soldToast', { amount: fmtUsd(amount), rate: fmtRate(rate) }));
+    var variance = res.data.transaction && res.data.transaction.varianceSyp;
+    if (variance) {
+      toast(t('txnAdjustedToast', { variance: fmtSypSigned(variance) }));
+    } else {
+      toast(t(txnType === 'buy' ? 'boughtToast' : 'soldToast', { amount: fmtUsd(amount), rate: fmtRate(rate) }));
+    }
   }
 
   function handleDeleteTxn(id) {
@@ -1388,6 +1545,11 @@
                 '<input name="rate" type="number" min="0" step="0.01" value="' + t2.rateApplied + '" dir="ltr" required class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono" />' +
               '</div>' +
               '<div>' +
+                '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('actualAmountLabel')) + '</label>' +
+                '<input name="actual" type="number" min="0" step="1" value="' + (t2.varianceSyp ? t2.amountSyp : '') + '" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono" />' +
+                '<p class="text-[11px] text-paper-dim mt-1">' + esc(t('actualAmountOptionalHint')) + '</p>' +
+              '</div>' +
+              '<div>' +
                 '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('noteLabel')) + '</label>' +
                 '<input name="note" type="text" maxlength="60" value="' + esc(t2.note || '') + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />' +
               '</div>' +
@@ -1420,10 +1582,25 @@
           return;
         }
 
-        var res = await apiFetch('/transactions/' + id, {
-          method: 'PUT',
-          body: { type: editType, amountUsd: amount, rate: rate, note: note },
-        });
+        // Empty "actual" = use the calculated amount. A different actual is a cash
+        // adjustment and needs a note saying why (the server enforces this too).
+        var body = { type: editType, amountUsd: amount, rate: rate, note: note };
+        var actualRaw = form.actual.value.trim();
+        if (actualRaw !== '') {
+          var actual = parseFloat(actualRaw);
+          if (!(actual > 0)) {
+            errEl.textContent = t('terminalErrorActualAmount');
+            errEl.classList.remove('hidden');
+            return;
+          }
+          if (Number((actual - amount * rate).toFixed(2)) !== 0 && !note) {
+            errEl.textContent = t('terminalErrorAdjustReason');
+            errEl.classList.remove('hidden');
+            return;
+          }
+          body.actualSyp = actual;
+        }
+        var res = await apiFetch('/transactions/' + id, { method: 'PUT', body: body });
         if (!res.ok) {
           errEl.textContent = res.data.error || t('editErrorNegative');
           errEl.classList.remove('hidden');
@@ -1516,7 +1693,7 @@
     if (username.length < 3) { errEl.textContent = t('usernameTooShort'); errEl.classList.remove('hidden'); return; }
     if (password.length < 4) { errEl.textContent = t('passwordTooShort'); errEl.classList.remove('hidden'); return; }
 
-    var res = await apiFetch('/users', { method: 'POST', body: { username: username, password: password, role: role } });
+    var res = await apiFetch('/users', { method: 'POST', body: { username: username, password: password, role: role, email: form.email.value.trim() } });
     if (!res.ok) { errEl.textContent = res.data.error || t('usernameTaken'); errEl.classList.remove('hidden'); return; }
 
     await refreshState();
@@ -1592,6 +1769,89 @@
     });
   }
 
+  function handleEditEmail(id) {
+    var user = state.users.find(function (u) { return u.id === id; });
+    if (!user) return;
+    var root = document.getElementById('modal-root');
+    root.innerHTML =
+      '<div class="modal-backdrop" data-action="modal-backdrop">' +
+        '<div class="modal-card panel-raised rounded-xl p-6 max-w-sm w-full" role="dialog" aria-modal="true">' +
+          '<h3 class="font-display text-lg mb-2">' + esc(t('editEmailTitle')) + '</h3>' +
+          '<p class="text-sm text-paper-dim mb-4">' + t('editEmailBody', { username: '<b class="text-paper">' + esc(user.username) + '</b>' }) + '</p>' +
+          '<form id="edit-email-form">' +
+            '<input name="email" type="email" autocomplete="off" dir="ltr" value="' + esc(user.email || '') + '" placeholder="name@example.com" class="field-input w-full rounded-lg px-3 py-2.5 text-sm mb-2" />' +
+            '<p id="edit-email-error" class="hidden text-rose-bright text-xs mb-2"></p>' +
+            '<div class="flex justify-end gap-2 mt-3">' +
+              '<button type="button" class="btn btn-ghost rounded-lg px-4 py-2 text-sm" data-action="modal-cancel">' + esc(t('cancelBtn')) + '</button>' +
+              '<button type="submit" class="btn btn-brass rounded-lg px-4 py-2 text-sm">' + esc(t('saveEmailBtn')) + '</button>' +
+            '</div>' +
+          '</form>' +
+        '</div>' +
+      '</div>';
+    root.querySelector('[data-action="modal-cancel"]').addEventListener('click', closeModal);
+    root.querySelector('[data-action="modal-backdrop"]').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModal(); });
+    root.querySelector('#edit-email-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var errE = document.getElementById('edit-email-error');
+      errE.classList.add('hidden');
+      var res = await apiFetch('/users/' + id + '/email', { method: 'PATCH', body: { email: e.target.email.value.trim() } });
+      if (!res.ok) { errE.textContent = res.data.error || t('invalidEmail'); errE.classList.remove('hidden'); return; }
+      await refreshState();
+      renderAdmin();
+      closeModal();
+      toast(t('emailUpdatedToast', { username: user.username }));
+    });
+  }
+
+  /* ================= actions: password recovery (login screen) ================= */
+  // A reset link looks like  https://…/#reset=TOKEN  — the token lives in the URL
+  // fragment so it never reaches server logs. Boot moves it into this variable and
+  // scrubs it from the address bar.
+  var resetToken = null;
+
+  function showAuthView(view) {
+    document.getElementById('login-form').classList.toggle('hidden', view !== 'login');
+    document.getElementById('forgot-form').classList.toggle('hidden', view !== 'forgot');
+    document.getElementById('reset-form').classList.toggle('hidden', view !== 'reset');
+  }
+
+  function showFormMessage(id, message) {
+    var el = document.getElementById(id);
+    el.textContent = message;
+    el.classList.remove('hidden');
+  }
+
+  async function handleForgotSubmit(form) {
+    var errEl = document.getElementById('forgot-error');
+    var okEl = document.getElementById('forgot-success');
+    errEl.classList.add('hidden');
+    okEl.classList.add('hidden');
+
+    var identifier = form.identifier.value.trim();
+    if (!identifier) { showFormMessage('forgot-error', t('forgotEnterIdentifier')); return; }
+
+    var res = await apiFetch('/forgot-password', { method: 'POST', body: { identifier: identifier } });
+    if (!res.ok) { showFormMessage('forgot-error', res.data.error || t('forgotEnterIdentifier')); return; }
+    showFormMessage('forgot-success', t('forgotSentMessage'));
+    form.reset();
+  }
+
+  async function handleResetSubmit(form) {
+    var errEl = document.getElementById('reset-error');
+    errEl.classList.add('hidden');
+
+    var pw = form.password.value;
+    if (pw.length < 4) { showFormMessage('reset-error', t('passwordTooShort')); return; }
+    if (pw !== form.confirm.value) { showFormMessage('reset-error', t('passwordsDontMatch')); return; }
+
+    var res = await apiFetch('/reset-password', { method: 'POST', body: { token: resetToken, password: pw } });
+    if (!res.ok) { showFormMessage('reset-error', res.data.error || t('passwordTooShort')); return; }
+    resetToken = null;
+    form.reset();
+    showAuthView('login');
+    toast(t('resetSuccessToast'));
+  }
+
   function handleFactoryReset() {
     var root = document.getElementById('modal-root');
     root.innerHTML =
@@ -1638,6 +1898,8 @@
     e.preventDefault();
     var kind = form.dataset.form;
     if (kind === 'login') handleLogin(form);
+    else if (kind === 'forgot-password') handleForgotSubmit(form);
+    else if (kind === 'reset-password') handleResetSubmit(form);
     else if (kind === 'update-rates') handleUpdateRates(form);
     else if (kind === 'execute-txn') handleExecuteTxn(form);
     else if (kind === 'create-user') handleCreateUser(form);
@@ -1658,6 +1920,9 @@
     else if (action === 'toggle-role') handleToggleRole(btn.dataset.id);
     else if (action === 'delete-user') handleDeleteUser(btn.dataset.id);
     else if (action === 'reset-password') handleResetPassword(btn.dataset.id);
+    else if (action === 'edit-email') handleEditEmail(btn.dataset.id);
+    else if (action === 'show-forgot') showAuthView('forgot');
+    else if (action === 'show-login') { resetToken = null; showAuthView('login'); }
     else if (action === 'edit-txn') openEditTxnModal(btn.dataset.id);
     else if (action === 'delete-txn') handleDeleteTxn(btn.dataset.id);
     else if (action === 'factory-reset') handleFactoryReset();
@@ -1673,6 +1938,14 @@
 
     tickClock();
     setInterval(tickClock, 1000);
+
+    var resetMatch = /^#reset=([A-Za-z0-9_-]+)$/.exec(location.hash);
+    if (resetMatch) {
+      resetToken = resetMatch[1];
+      history.replaceState(null, '', location.pathname + location.search);
+      showLogin();
+      return;
+    }
 
     session = loadSession();
     if (session && session.token) {
