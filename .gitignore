@@ -1,0 +1,16 @@
+# Signs activation codes - anyone holding this can authorize any PC. Never commit; keep a backup elsewhere.
+installer/keys/private.pem
+
+# Customer catalogue, photos, backups and the Excel dump
+data/
+
+# Per-install state that can land next to the app
+license.json
+settings.json
+remember.json
+
+# Build output (regenerate with: node installer/build.mjs)
+Glass Finder Setup.exe
+
+node_modules/
+*.tmp

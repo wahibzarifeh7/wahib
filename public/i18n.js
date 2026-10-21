@@ -1,0 +1,623 @@
+// English/Arabic text for the whole app, plus real Arabic pluralization.
+//
+// Arabic counts a noun differently depending on the number: zero, one, two, "few" (3-10), "many"
+// (11-99), and "other" (100, 200, ...) - not just singular/plural like English. `plural()` below
+// picks the right one. Model names, brand names and box numbers are never translated - they are the
+// shop's actual product data, not UI text.
+const LANG_KEY = 'gf_lang';
+
+export function getLang() {
+  try {
+    return localStorage.getItem(LANG_KEY) === 'ar' ? 'ar' : 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+export function applyDirection(lang = getLang()) {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+}
+
+export function setLang(lang) {
+  try {
+    localStorage.setItem(LANG_KEY, lang);
+  } catch {
+    // private window or blocked storage - the choice just won't stick between visits
+  }
+  applyDirection(lang);
+}
+
+const D = {
+  en: {
+    'app.name': 'Glass Finder',
+    'nav.allBoxes': '← All boxes',
+    'search.placeholder': 'Type a phone model, e.g. A52, hot 10 play, redmi note 11',
+    'search.clearAria': 'Clear search',
+    'search.hint': '{boxes} · {models}. Search above, or open a box to see everything inside it.',
+    'search.brandSuffix': ' · brand {brand}',
+    'search.closeSpellings': 'Close spellings',
+    'search.didYouMean': 'No exact match. Did you mean',
+    'search.notInAnyBox': 'Not in any box',
+    'search.noModelMatches': 'No model matches “{q}”. Check the spelling, or add it to a box.',
+    'search.addToBox': 'Add “{q}” to a box',
+    'search.brandUnknown': 'Brand unknown',
+    'search.showMore': 'Show {n} more ({left} left)',
+    'deletedNote.was': '{model} was in <b>Box {box}</b> until it was deleted {when}.',
+    'deletedNote.restoreBtn': 'Restore box {n}',
+
+    'shelf.emptyTitle': 'No boxes yet',
+    'shelf.emptyBody': 'Add your first models and they will show up here.',
+    'shelf.addModels': 'Add models',
+    'stock.out': 'Out of stock',
+    'stock.in': '{n} in stock',
+
+    'box.tagAria': 'Box {n}',
+    'box.doesNotExist': 'Box {n} doesn’t exist yet',
+    'box.addModelsToBox': 'Add models to box {n}',
+    'box.shareThisGlass': '{models} share this glass',
+    'box.notePlaceholder': 'Add a note, e.g. glass type or shelf position',
+    'box.noteAria': 'Note for box {n}',
+    'box.inStockLabel': 'In stock',
+    'box.stockPlaceholder': 'How many glass sheets left (optional)',
+    'box.stockAria': 'Stock for box {n}',
+    'box.addModelsShort': '+ Add models to box {n}',
+    'box.deleteBox': 'Delete box {n}',
+    'box.filterPlaceholder': 'Filter inside this box',
+    'box.filterAria': 'Filter models in this box',
+    'box.noFilterMatch': 'Nothing in this box matches that filter.',
+
+    'confirm.deleteEmptyBox': 'Delete empty box {n}?',
+    'confirm.deleteBoxAllShared': 'Delete box {n}? All {models} are also in other boxes, so they’ll just lose this box tag — none will be deleted.',
+    'confirm.deleteBoxAllOnly': 'Delete box {n}? All {models} are only in this box and will be deleted entirely. This cannot be undone.',
+    'confirm.deleteBoxMixed': 'Delete box {n}? {onlyModels} are only in this box and will be deleted entirely; {sharedModels} also in other boxes will just lose this box tag. This cannot be undone.',
+    'confirm.forgetDeletedBox': 'Forget box {n}’s deleted record? You won’t be able to restore it after this.',
+    'confirm.deleteModel': 'Delete {brand} {name} from every box? This cannot be undone.',
+    'confirm.restoreBackup': 'Replace everything in the app with this backup file? Your current data is saved to the backups folder first.',
+    'confirm.clearMisses': 'Clear the whole list of searches with no result?',
+
+    'toast.boxDeleted': 'Box {n} deleted',
+    'toast.boxDeletedRemoved': ' — {models} removed',
+    'toast.boxDeletedKept': ', {models} kept in their other boxes',
+    'toast.boxRestored': 'Box {n} restored — {models} back in it',
+    'toast.saved': 'Saved',
+    'toast.deleted': 'Deleted',
+    'toast.noteSaved': 'Note saved',
+    'toast.stockSaved': 'Stock count saved',
+    'toast.stockCleared': 'Stock count cleared',
+    'toast.backupRestored': 'Backup restored',
+    'toast.photosQueued': 'Looking up photos for {n} models. This runs in the background.',
+    'toast.allHavePhotos': 'Every model already has a photo, or was tried and failed.',
+    'toast.retryingPhotos': 'Retrying photos for {n} models.',
+    'toast.passwordChanged': 'Password changed',
+    'toast.keyRemoved': 'Serper key removed — back to the free photo search',
+    'toast.keySaved': 'Key saved — photo search is now using Serper',
+
+    'err.boxesMustBeNumbers': 'Boxes must be numbers like 6 or 6, 15',
+    'err.alreadyExists': '{brand} {name} already exists (box {boxes}). Delete or rename one of them.',
+    'err.pasteLinkFirst': 'Paste an image link first',
+    'err.cannotReachServer': 'Cannot reach the Glass Finder server. Is its window still open?',
+    'err.requestFailed': 'Request failed ({status})',
+    'err.invalidJsonFile': 'That file isn’t valid JSON.',
+
+    'menu.moreOptions': 'More options',
+    'menu.searchesNoResult': 'Searches with no result',
+    'menu.deletedBoxes': 'Deleted boxes',
+    'menu.getMissingPhotos': 'Get missing photos',
+    'menu.retryFailedPhotos': 'Retry photos that failed',
+    'menu.photoSettings': 'Photo settings…',
+    'menu.downloadCsv': 'Download list for Excel (.csv)',
+    'menu.downloadBackup': 'Download backup file',
+    'menu.restoreBackup': 'Restore from backup file…',
+    'menu.downloadActivationBackup': 'Download activation backup',
+    'menu.changePassword': 'Change password',
+    'menu.logout': 'Log out',
+    'menu.language': 'العربية',
+    'menu.signedInAs': 'Signed in as {username}',
+
+    'misses.title': 'Searches with no result',
+    'misses.bodyNonEmpty': 'Phones you looked for that are not in any box, most searched first. Add one to a box once you have the glass, and it drops off this list.',
+    'misses.bodyEmpty': 'Nothing yet. When you search for a phone that is not in any box, it will be listed here.',
+    'misses.lastWhen': ' · last {when}',
+    'misses.addToBox': 'Add to a box',
+    'misses.dismiss': 'Dismiss',
+    'misses.dismissAria': 'Dismiss {q}',
+    'misses.clearList': 'Clear list',
+    'misses.close': 'Close',
+
+    'deletedBoxes.title': 'Deleted boxes',
+    'deletedBoxes.bodyNonEmpty': 'Boxes you’ve deleted, most recent first. Restore one once that glass is back in stock, and everything that was in it comes back.',
+    'deletedBoxes.bodyEmpty': 'Nothing here. A box you delete is kept here so it can be brought back later.',
+    'deletedBoxes.deletedWhen': ' · deleted {when}',
+    'deletedBoxes.restore': 'Restore',
+    'deletedBoxes.forget': 'Forget',
+    'deletedBoxes.forgetAria': 'Forget box {n}',
+    'deletedBoxes.modelsCaption': 'Tap a model that’s still in your catalog to open it. Faded ones were only in this box and can’t be recovered.',
+    'deletedBoxes.goneForever': 'No longer in your catalog — this box was its only home.',
+    'deletedBoxes.noModels': 'This box had no models in it.',
+
+    'photo.for': 'Photo for {name}',
+    'photo.searchingWeb': 'Searching the web…',
+    'photo.tapMatch': 'Tap the photo that matches this phone.',
+    'photo.noneFound': 'No photos found. Paste a link or upload one below.',
+    'photo.errorSuffix': '{err}. You can still paste a link or upload a photo.',
+    'photo.savingPhoto': 'Saving photo…',
+    'photo.changePhoto': 'Change photo',
+    'photo.findPhoto': 'Find photo',
+    'photo.remove': 'Remove',
+    'photo.pasteLink': 'Or paste an image link',
+    'photo.uploadPhoto': 'Or upload a photo',
+    'photo.useLink': 'Use link',
+    'photo.cancel': 'Cancel',
+    'status.pausedFor': 'Photo search paused {mins} min · {n} waiting',
+    'status.gettingPhotos': 'Getting photos · {n} left',
+    'status.pausedTitle': 'The photo search site said: {err}. Waiting before trying again. Use ⋯ > Get missing photos to retry now.',
+    'status.stopped': 'Photo search stopped',
+
+    'detail.thisGlassIsIn': 'This glass is in',
+    'detail.boxHolds': 'Box {b} holds {models}.',
+    'detail.tapToSeeAll': ' Tap a box number to see them all.',
+    'detail.modelLabel': 'Model',
+    'detail.brandLabel': 'Brand',
+    'detail.brandUnknownPlaceholder': 'Unknown',
+    'detail.boxesLabel': 'Boxes (separate with commas)',
+    'detail.deleteModel': 'Delete model',
+    'detail.close': 'Close',
+    'detail.saveChanges': 'Save changes',
+
+    'add.title': 'Add models to a box',
+    'add.boxNumberLabel': 'Box number',
+    'add.brandForNamesLabel': 'Brand for names without one',
+    'add.workItOut': 'Work it out from the text',
+    'add.pasteNames': 'Paste the model names',
+    'add.separatorHelp': 'Separate models with / or ; or a new line. Short brand names work: SAM, RM, XM, OP, VI, INF, TEC, HW, MT.',
+    'add.cancel': 'Cancel',
+    'add.addModelsBtn': 'Add models',
+    'add.modelsFound': '{n} found',
+    'add.alreadyInAnotherBox': 'Already in box {boxes}. It will also be put in box {box}.',
+    'add.alreadyInThisBox': 'Already in this box',
+    'add.newModel': 'New model',
+    'add.removeAria': 'Remove {name}',
+    'add.legendNew': 'New · {n}',
+    'add.legendOther': 'Already in another box · {n}',
+    'add.legendHere': 'Already in this box · {n}',
+    'add.previewHint': 'The models you paste will be listed here so you can check them before adding.',
+    'add.boxHoldsAlready': 'Box {box} already holds {models}. New ones will be added to it.',
+    'add.boxIsNew': 'Box {box} is new. It will be created.',
+    'add.addNToBox': 'Add {modelsPhrase} to box {box}',
+    'add.addModelsToBoxGeneric': 'Add models',
+    'toast.addSummary': 'Box {box}: {bits}',
+    'toast.addNew': '{n} new',
+    'toast.addJoined': '{n} already known, now also in box {box}',
+    'toast.addAlready': '{n} were already there',
+    'toast.gettingPhotosSuffix': '. Getting photos…',
+
+    'gate.notActivatedYet': 'This PC isn’t activated yet. Send it this ID and ask for an activation code:',
+    'gate.activationCodeLabel': 'Activation code',
+    'gate.pasteCodeGiven': 'Paste the code you were given',
+    'gate.chooseUsername': 'Choose a username',
+    'gate.choosePassword': 'Choose a password',
+    'gate.activateBtn': 'Activate this PC',
+    'gate.lockedDifferentPc': 'This copy is locked to a different PC and can’t open here.',
+    'gate.relockExplain': 'If this is meant to be here — Windows was reinstalled, or you’re moving it here on purpose — send this ID and ask for a new code. Your username and password stay the same.',
+    'gate.pasteNewCodeGiven': 'Paste the new code you were given',
+    'gate.unlockBtn': 'Unlock this PC',
+    'gate.signInToContinue': 'Sign in to continue.',
+    'gate.usernameLabel': 'Username',
+    'gate.passwordLabel': 'Password',
+    'gate.rememberMe': 'Remember me on this device',
+    'gate.signInBtn': 'Sign in',
+    'gate.orRestoreBackup': 'Or restore from an activation backup file',
+    'gate.backupFileLabel': 'Backup file',
+
+    'pw.title': 'Change password',
+    'pw.currentPassword': 'Current password',
+    'pw.newPassword': 'New password',
+    'pw.save': 'Save',
+
+    'photoSettings.title': 'Photo settings',
+    'photoSettings.usingSerper': 'Using Serper for photo search — key ending {last4}. Fast and reliable, so photos fetch quickly and rarely need picking by hand.',
+    'photoSettings.removeKeyBtn': 'Remove key (go back to the free search)',
+    'photoSettings.freeSearchExplain': 'Right now photos come from a free, keyless search that occasionally gets rate-limited and needs manual picking more often.',
+    'photoSettings.serperPitch': 'Adding a {link} API key makes photo search fast and far more reliable — free to sign up, no card needed, and the free allowance (2,500 searches) comfortably covers this whole catalogue. Sign up there, copy the API key from your dashboard, and paste it below.',
+    'photoSettings.replaceKeyLabel': 'Replace the key',
+    'photoSettings.serperApiKeyLabel': 'Serper API key',
+    'photoSettings.pasteApiKey': 'Paste your API key',
+    'photoSettings.saveAndTest': 'Save & test',
+
+    'menu.lowStock': 'Low stock',
+    'menu.reorderReport': 'Reorder report',
+    'menu.unknownBrand': 'Unknown brand',
+    'menu.manageStaff': 'Manage staff…',
+    'menu.activityLog': 'Activity log',
+
+    'sell.button': '−1 · Box {n} ({stock} left)',
+    'sell.short': 'Sold one',
+    'toast.sold': 'Sold one from box {n} — {stock} left',
+
+    'shelf.frequentTitle': 'Frequently searched',
+
+    'lowStock.title': 'Low stock',
+    'lowStock.thresholdLabel': 'Alert when stock is at or below',
+    'lowStock.bodyNonEmpty': 'Boxes at or below your threshold, lowest first.',
+    'lowStock.bodyEmpty': 'Nothing is low right now.',
+    'lowStock.openBox': 'Open box',
+
+    'reorder.title': 'Reorder report',
+    'reorder.explain': 'What to reorder at a glance: boxes running low or out, and phones people keep asking for that aren’t in stock.',
+    'reorder.lowOrOut': 'Low or out of stock',
+    'reorder.requestedNotStocked': 'Requested but not in stock',
+    'reorder.copyBtn': 'Copy for a supplier call',
+    'reorder.copied': 'Copied to clipboard',
+    'reorder.copyHeaderLow': 'LOW OR OUT OF STOCK',
+    'reorder.copyHeaderMissing': 'REQUESTED BUT NOT IN STOCK',
+
+    'unknownBrand.title': 'Unknown brand',
+    'unknownBrand.bodyNonEmpty': 'Models with a guessed or blank brand. Fix them in one pass.',
+    'unknownBrand.bodyEmpty': 'Every model has a brand set.',
+    'unknownBrand.inBoxes': 'Box {boxes}',
+    'unknownBrand.fix': 'Fix',
+
+    'detail.mergeInto': 'Merge into another model…',
+    'merge.title': 'Merge {name}',
+    'merge.explain': 'Pick the model to keep. Everything here — its boxes — moves onto that one, and this entry is deleted.',
+    'merge.searchLabel': 'Search for the model to keep',
+    'merge.inBoxes': 'Box {boxes}',
+    'merge.absorbBtn': 'Merge into this',
+    'merge.noMatches': 'No matching models.',
+    'confirm.mergeModels': 'Merge “{from}” into “{into}”? {from} will be deleted and its boxes added to {into}. This cannot be undone.',
+    'toast.merged': 'Merged into {name}',
+
+    'deletedBoxes.clearList': 'Clear list',
+    'confirm.clearDeletedBoxes': 'Clear the whole list of deleted boxes? You won’t be able to restore any of them after this.',
+
+    'users.title': 'Staff accounts',
+    'users.roleAdmin': 'Admin',
+    'users.roleStaff': 'Staff',
+    'users.resetPassword': 'Reset password',
+    'users.remove': 'Remove',
+    'users.addTitle': 'Add a staff account',
+    'users.usernameLabel': 'Username',
+    'users.passwordLabel': 'Password',
+    'users.roleLabel': 'Role',
+    'users.addBtn': 'Add account',
+    'users.newPasswordPrompt': 'New password for {username}:',
+    'users.passwordTooShort': 'The password needs at least 4 characters.',
+    'confirm.removeUser': 'Remove {username}’s account? They won’t be able to sign in anymore.',
+    'toast.userAdded': '{username} added',
+    'toast.userRemoved': '{username} removed',
+    'toast.passwordReset': 'Password reset for {username}',
+
+    'activity.title': 'Activity log',
+    'activity.bodyNonEmpty': 'Who did what, most recent first.',
+    'activity.bodyEmpty': 'Nothing logged yet.',
+
+    'menu.themeToLight': 'Light mode',
+    'menu.themeToDark': 'Dark mode',
+    'menu.themeToSystem': 'Match Windows',
+
+    'shelf.allLabel': 'All models',
+    'all.subtitle': 'Every model you carry — {models} across every box. A good place to spot the ones still missing a photo.',
+    'all.filterAria': 'Filter all models',
+    'all.filterPlaceholder': 'Filter all models',
+  },
+  ar: {
+    'app.name': 'Glass Finder',
+    'nav.allBoxes': 'كل الصناديق ←',
+    'search.placeholder': 'اكتب اسم موديل الهاتف، مثال: A52 أو hot 10 play',
+    'search.clearAria': 'مسح البحث',
+    'search.hint': '{boxes} · {models}. ابحث أعلاه، أو افتح صندوقًا لرؤية كل ما بداخله.',
+    'search.brandSuffix': ' · الماركة {brand}',
+    'search.closeSpellings': 'أسماء قريبة الإملاء',
+    'search.didYouMean': 'لا توجد نتيجة مطابقة. هل تقصد',
+    'search.notInAnyBox': 'غير موجود في أي صندوق',
+    'search.noModelMatches': 'لا يوجد موديل مطابق لـ ”{q}“. تحقق من الإملاء، أو أضفه إلى صندوق.',
+    'search.addToBox': 'إضافة ”{q}“ إلى صندوق',
+    'search.brandUnknown': 'الماركة غير معروفة',
+    'search.showMore': 'إظهار {n} أخرى (تبقّى {left})',
+    'deletedNote.was': 'كان <b>{model}</b> في <b>الصندوق {box}</b> إلى أن تم حذفه {when}.',
+    'deletedNote.restoreBtn': 'استرجاع الصندوق {n}',
+
+    'shelf.emptyTitle': 'لا توجد صناديق بعد',
+    'shelf.emptyBody': 'أضف أول الموديلات وستظهر هنا.',
+    'shelf.addModels': 'إضافة موديلات',
+    'stock.out': 'نفدت الكمية',
+    'stock.in': 'متوفر: {n}',
+
+    'box.tagAria': 'الصندوق {n}',
+    'box.doesNotExist': 'الصندوق {n} غير موجود بعد',
+    'box.addModelsToBox': 'إضافة موديلات إلى الصندوق {n}',
+    'box.shareThisGlass': 'يضم هذا الصندوق {models}',
+    'box.notePlaceholder': 'أضف ملاحظة، مثل نوع الزجاج أو مكانه في الرف',
+    'box.noteAria': 'ملاحظة الصندوق {n}',
+    'box.inStockLabel': 'الكمية المتوفرة',
+    'box.stockPlaceholder': 'عدد قطع الزجاج المتبقية (اختياري)',
+    'box.stockAria': 'كمية الصندوق {n}',
+    'box.addModelsShort': '+ إضافة موديلات إلى الصندوق {n}',
+    'box.deleteBox': 'حذف الصندوق {n}',
+    'box.filterPlaceholder': 'تصفية داخل هذا الصندوق',
+    'box.filterAria': 'تصفية الموديلات في هذا الصندوق',
+    'box.noFilterMatch': 'لا يوجد في هذا الصندوق ما يطابق هذه التصفية.',
+
+    'confirm.deleteEmptyBox': 'هل تريد حذف الصندوق الفارغ {n}؟',
+    'confirm.deleteBoxAllShared': 'هل تريد حذف الصندوق {n}؟ كل ما فيه ({models}) موجود أيضًا في صناديق أخرى، لذا سيفقد وسم هذا الصندوق فقط — لن يُحذف شيء نهائيًا.',
+    'confirm.deleteBoxAllOnly': 'هل تريد حذف الصندوق {n}؟ كل ما فيه ({models}) موجود في هذا الصندوق فقط وسيُحذف نهائيًا. لا يمكن التراجع عن هذا.',
+    'confirm.deleteBoxMixed': 'هل تريد حذف الصندوق {n}؟ منه {onlyModels} موجود في هذا الصندوق فقط وسيُحذف نهائيًا، ومنه {sharedModels} موجود أيضًا في صناديق أخرى وسيفقد وسم هذا الصندوق فقط. لا يمكن التراجع عن هذا.',
+    'confirm.forgetDeletedBox': 'هل تريد نسيان سجل حذف الصندوق {n}؟ لن تتمكن من استرجاعه بعد ذلك.',
+    'confirm.deleteModel': 'هل تريد حذف {brand} {name} من كل الصناديق؟ لا يمكن التراجع عن هذا.',
+    'confirm.restoreBackup': 'هل تريد استبدال كل بيانات التطبيق بملف النسخ الاحتياطي هذا؟ سيتم حفظ بياناتك الحالية في مجلد النسخ الاحتياطية أولًا.',
+    'confirm.clearMisses': 'هل تريد مسح قائمة عمليات البحث التي لم تُظهر نتيجة بالكامل؟',
+
+    'toast.boxDeleted': 'تم حذف الصندوق {n}',
+    'toast.boxDeletedRemoved': ' — تم حذف {models}',
+    'toast.boxDeletedKept': '، مع الإبقاء على {models} في صناديقها الأخرى',
+    'toast.boxRestored': 'تم استرجاع الصندوق {n} مع إعادة {models} إليه',
+    'toast.saved': 'تم الحفظ',
+    'toast.deleted': 'تم الحذف',
+    'toast.noteSaved': 'تم حفظ الملاحظة',
+    'toast.stockSaved': 'تم حفظ الكمية',
+    'toast.stockCleared': 'تم مسح الكمية',
+    'toast.backupRestored': 'تم استرجاع النسخة الاحتياطية',
+    'toast.photosQueued': 'جارٍ البحث عن صور لـ {n} موديل. يعمل هذا في الخلفية.',
+    'toast.allHavePhotos': 'كل الموديلات لديها صورة بالفعل، أو تمت تجربتها ولم تنجح.',
+    'toast.retryingPhotos': 'إعادة محاولة جلب صور لـ {n} موديل.',
+    'toast.passwordChanged': 'تم تغيير كلمة المرور',
+    'toast.keyRemoved': 'تم حذف مفتاح Serper — رجوع إلى البحث المجاني',
+    'toast.keySaved': 'تم حفظ المفتاح — البحث عن الصور يستخدم Serper الآن',
+
+    'err.boxesMustBeNumbers': 'يجب أن تكون الصناديق أرقامًا مثل 6 أو 6, 15',
+    'err.alreadyExists': '{brand} {name} موجود مسبقًا (الصندوق {boxes}). احذف أو أعد تسمية أحدهما.',
+    'err.pasteLinkFirst': 'الصق رابط الصورة أولًا',
+    'err.cannotReachServer': 'تعذّر الوصول إلى خادم Glass Finder. هل نافذته ما زالت مفتوحة؟',
+    'err.requestFailed': 'فشل الطلب ({status})',
+    'err.invalidJsonFile': 'هذا الملف ليس JSON صالحًا.',
+
+    'menu.moreOptions': 'خيارات إضافية',
+    'menu.searchesNoResult': 'عمليات بحث بلا نتيجة',
+    'menu.deletedBoxes': 'الصناديق المحذوفة',
+    'menu.getMissingPhotos': 'جلب الصور الناقصة',
+    'menu.retryFailedPhotos': 'إعادة محاولة الصور الفاشلة',
+    'menu.photoSettings': 'إعدادات الصور…',
+    'menu.downloadCsv': 'تنزيل القائمة لإكسل (.csv)',
+    'menu.downloadBackup': 'تنزيل نسخة احتياطية',
+    'menu.restoreBackup': 'استرجاع من نسخة احتياطية…',
+    'menu.downloadActivationBackup': 'تنزيل نسخة احتياطية للتفعيل',
+    'menu.changePassword': 'تغيير كلمة المرور',
+    'menu.logout': 'تسجيل الخروج',
+    'menu.language': 'English',
+    'menu.signedInAs': 'مسجّل الدخول باسم {username}',
+
+    'misses.title': 'عمليات بحث بلا نتيجة',
+    'misses.bodyNonEmpty': 'هواتف بحثت عنها ولم تكن في أي صندوق، الأكثر بحثًا أولًا. أضفه إلى صندوق بمجرد توفر الزجاج لديك، فيختفي من هذه القائمة.',
+    'misses.bodyEmpty': 'لا شيء هنا بعد. عندما تبحث عن هاتف غير موجود في أي صندوق، سيظهر هنا.',
+    'misses.lastWhen': ' · آخر مرة {when}',
+    'misses.addToBox': 'إضافة إلى صندوق',
+    'misses.dismiss': 'تجاهل',
+    'misses.dismissAria': 'تجاهل {q}',
+    'misses.clearList': 'مسح القائمة',
+    'misses.close': 'إغلاق',
+
+    'deletedBoxes.title': 'الصناديق المحذوفة',
+    'deletedBoxes.bodyNonEmpty': 'الصناديق التي حذفتها، الأحدث أولًا. استرجع أيًا منها بمجرد توفر ذلك الزجاج مجددًا، وسيعود كل ما كان بداخله.',
+    'deletedBoxes.bodyEmpty': 'لا شيء هنا. الصندوق الذي تحذفه يُحفظ هنا ليتسنى استرجاعه لاحقًا.',
+    'deletedBoxes.deletedWhen': ' · حُذف {when}',
+    'deletedBoxes.restore': 'استرجاع',
+    'deletedBoxes.forget': 'نسيان',
+    'deletedBoxes.forgetAria': 'نسيان الصندوق {n}',
+    'deletedBoxes.modelsCaption': 'اضغط على موديل ما زال في كتالوجك لفتحه. الموديلات الباهتة كانت فقط في هذا الصندوق ولا يمكن استرجاعها.',
+    'deletedBoxes.goneForever': 'لم يعد في كتالوجك — كان هذا الصندوق مكانه الوحيد.',
+    'deletedBoxes.noModels': 'لم يكن في هذا الصندوق أي موديلات.',
+
+    'photo.for': 'صورة {name}',
+    'photo.searchingWeb': 'جارٍ البحث في الويب…',
+    'photo.tapMatch': 'اضغط على الصورة التي تطابق هذا الهاتف.',
+    'photo.noneFound': 'لم يتم العثور على صور. الصق رابطًا أو ارفع صورة أدناه.',
+    'photo.errorSuffix': '{err}. لا يزال بإمكانك لصق رابط أو رفع صورة.',
+    'photo.savingPhoto': 'جارٍ حفظ الصورة…',
+    'photo.changePhoto': 'تغيير الصورة',
+    'photo.findPhoto': 'البحث عن صورة',
+    'photo.remove': 'إزالة',
+    'photo.pasteLink': 'أو الصق رابط صورة',
+    'photo.uploadPhoto': 'أو ارفع صورة',
+    'photo.useLink': 'استخدام الرابط',
+    'photo.cancel': 'إلغاء',
+    'status.pausedFor': 'تم إيقاف البحث عن الصور مؤقتًا {mins} دقيقة · بانتظار {n}',
+    'status.gettingPhotos': 'جارٍ جلب الصور · تبقّى {n}',
+    'status.pausedTitle': 'رسالة موقع البحث عن الصور: {err}. الانتظار قبل إعادة المحاولة. استخدم ⋯ > جلب الصور الناقصة لإعادة المحاولة الآن.',
+    'status.stopped': 'توقف البحث عن الصور',
+
+    'detail.thisGlassIsIn': 'هذه الحماية موجودة في',
+    'detail.boxHolds': 'الصندوق {b} يحتوي على {models}.',
+    'detail.tapToSeeAll': ' اضغط على رقم الصندوق لرؤية الكل.',
+    'detail.modelLabel': 'الموديل',
+    'detail.brandLabel': 'الماركة',
+    'detail.brandUnknownPlaceholder': 'غير معروفة',
+    'detail.boxesLabel': 'الصناديق (افصل بينها بفاصلة)',
+    'detail.deleteModel': 'حذف الموديل',
+    'detail.close': 'إغلاق',
+    'detail.saveChanges': 'حفظ التغييرات',
+
+    'add.title': 'إضافة موديلات إلى صندوق',
+    'add.boxNumberLabel': 'رقم الصندوق',
+    'add.brandForNamesLabel': 'الماركة للأسماء بلا ماركة',
+    'add.workItOut': 'استنتاجها من النص',
+    'add.pasteNames': 'الصق أسماء الموديلات',
+    'add.separatorHelp': 'افصل بين الموديلات بـ / أو ؛ أو بسطر جديد. تعمل أسماء الماركات المختصرة: SAM, RM, XM, OP, VI, INF, TEC, HW, MT.',
+    'add.cancel': 'إلغاء',
+    'add.addModelsBtn': 'إضافة الموديلات',
+    'add.modelsFound': 'تم العثور على {n}',
+    'add.alreadyInAnotherBox': 'موجود مسبقًا في الصندوق {boxes}. سيُضاف أيضًا إلى الصندوق {box}.',
+    'add.alreadyInThisBox': 'موجود مسبقًا في هذا الصندوق',
+    'add.newModel': 'موديل جديد',
+    'add.removeAria': 'إزالة {name}',
+    'add.legendNew': 'جديد · {n}',
+    'add.legendOther': 'موجود في صندوق آخر · {n}',
+    'add.legendHere': 'موجود في هذا الصندوق · {n}',
+    'add.previewHint': 'ستظهر هنا الموديلات التي تلصقها لتتحقق منها قبل الإضافة.',
+    'add.boxHoldsAlready': 'يحتوي الصندوق {box} على {models} بالفعل. ستُضاف الموديلات الجديدة إليه.',
+    'add.boxIsNew': 'الصندوق {box} جديد. سيتم إنشاؤه.',
+    'add.addNToBox': 'إضافة {modelsPhrase} إلى الصندوق {box}',
+    'add.addModelsToBoxGeneric': 'إضافة الموديلات',
+    'toast.addSummary': 'الصندوق {box}: {bits}',
+    'toast.addNew': '{n} جديد',
+    'toast.addJoined': '{n} معروف مسبقًا، وأُضيف الآن إلى الصندوق {box}',
+    'toast.addAlready': '{n} كان موجودًا بالفعل',
+    'toast.gettingPhotosSuffix': '. جارٍ جلب الصور…',
+
+    'gate.notActivatedYet': 'هذا الجهاز غير مُفعّل بعد. أرسل هذا المعرّف واطلب رمز تفعيل:',
+    'gate.activationCodeLabel': 'رمز التفعيل',
+    'gate.pasteCodeGiven': 'الصق الرمز الذي حصلت عليه',
+    'gate.chooseUsername': 'اختر اسم مستخدم',
+    'gate.choosePassword': 'اختر كلمة مرور',
+    'gate.activateBtn': 'تفعيل هذا الجهاز',
+    'gate.lockedDifferentPc': 'هذه النسخة مقفلة على جهاز آخر ولا يمكن فتحها هنا.',
+    'gate.relockExplain': 'إذا كان من المفترض أن تعمل هنا — بعد إعادة تثبيت ويندوز، أو لأنك تنقلها هنا عمدًا — أرسل هذا المعرّف واطلب رمزًا جديدًا. سيبقى اسم المستخدم وكلمة المرور كما هما.',
+    'gate.pasteNewCodeGiven': 'الصق الرمز الجديد الذي حصلت عليه',
+    'gate.unlockBtn': 'فتح هذا الجهاز',
+    'gate.signInToContinue': 'سجّل الدخول للمتابعة.',
+    'gate.usernameLabel': 'اسم المستخدم',
+    'gate.passwordLabel': 'كلمة المرور',
+    'gate.rememberMe': 'تذكّرني على هذا الجهاز',
+    'gate.signInBtn': 'تسجيل الدخول',
+    'gate.orRestoreBackup': 'أو استرجع من ملف نسخة احتياطية للتفعيل',
+    'gate.backupFileLabel': 'ملف النسخة الاحتياطية',
+
+    'pw.title': 'تغيير كلمة المرور',
+    'pw.currentPassword': 'كلمة المرور الحالية',
+    'pw.newPassword': 'كلمة المرور الجديدة',
+    'pw.save': 'حفظ',
+
+    'photoSettings.title': 'إعدادات الصور',
+    'photoSettings.usingSerper': 'يُستخدم Serper للبحث عن الصور — المفتاح ينتهي بـ {last4}. سريع وموثوق، فتُجلب الصور بسرعة ونادرًا ما تحتاج اختيارًا يدويًا.',
+    'photoSettings.removeKeyBtn': 'إزالة المفتاح (الرجوع إلى البحث المجاني)',
+    'photoSettings.freeSearchExplain': 'حاليًا تأتي الصور من بحث مجاني بلا مفتاح، يتعرض أحيانًا لتقييد الطلبات ويحتاج اختيارًا يدويًا أكثر.',
+    'photoSettings.serperPitch': 'إضافة مفتاح {link} تجعل البحث عن الصور سريعًا وأكثر موثوقية — التسجيل مجاني وبلا بطاقة، والحد المجاني (2500 عملية بحث) يغطي هذا الكتالوج بالكامل بارتياح. سجّل هناك، وانسخ مفتاح API من لوحة التحكم، والصقه أدناه.',
+    'photoSettings.replaceKeyLabel': 'استبدال المفتاح',
+    'photoSettings.serperApiKeyLabel': 'مفتاح Serper API',
+    'photoSettings.pasteApiKey': 'الصق مفتاح API الخاص بك',
+    'photoSettings.saveAndTest': 'حفظ واختبار',
+
+    'menu.lowStock': 'كمية منخفضة',
+    'menu.reorderReport': 'تقرير إعادة الطلب',
+    'menu.unknownBrand': 'ماركة غير معروفة',
+    'menu.manageStaff': 'إدارة الموظفين…',
+    'menu.activityLog': 'سجل النشاط',
+
+    'sell.button': 'بيع واحدة · الصندوق {n} (تبقّى {stock})',
+    'sell.short': 'بيع واحدة',
+    'toast.sold': 'تم بيع واحدة من الصندوق {n} — تبقّى {stock}',
+
+    'shelf.frequentTitle': 'الأكثر بحثًا',
+
+    'lowStock.title': 'كمية منخفضة',
+    'lowStock.thresholdLabel': 'التنبيه عندما تصل الكمية إلى هذا الحد أو أقل',
+    'lowStock.bodyNonEmpty': 'الصناديق التي وصلت كميتها إلى الحد المحدد أو أقل، الأقل أولًا.',
+    'lowStock.bodyEmpty': 'لا شيء منخفض حاليًا.',
+    'lowStock.openBox': 'فتح الصندوق',
+
+    'reorder.title': 'تقرير إعادة الطلب',
+    'reorder.explain': 'ما يجب إعادة طلبه دفعة واحدة: الصناديق التي كميتها منخفضة أو نفدت، والهواتف التي يطلبها الزبائن باستمرار وليست متوفرة.',
+    'reorder.lowOrOut': 'كمية منخفضة أو نافدة',
+    'reorder.requestedNotStocked': 'مطلوب ولكن غير متوفر',
+    'reorder.copyBtn': 'نسخ لاتصال المورّد',
+    'reorder.copied': 'تم النسخ',
+    'reorder.copyHeaderLow': 'كمية منخفضة أو نافدة',
+    'reorder.copyHeaderMissing': 'مطلوب ولكن غير متوفر',
+
+    'unknownBrand.title': 'ماركة غير معروفة',
+    'unknownBrand.bodyNonEmpty': 'موديلات ماركتها مُخمَّنة أو فارغة. أصلحها دفعة واحدة.',
+    'unknownBrand.bodyEmpty': 'كل الموديلات لديها ماركة محددة.',
+    'unknownBrand.inBoxes': 'الصندوق {boxes}',
+    'unknownBrand.fix': 'إصلاح',
+
+    'detail.mergeInto': 'دمج في موديل آخر…',
+    'merge.title': 'دمج {name}',
+    'merge.explain': 'اختر الموديل الذي تريد الإبقاء عليه. كل ما هنا — صناديقه — سينتقل إليه، وسيُحذف هذا الموديل.',
+    'merge.searchLabel': 'ابحث عن الموديل الذي تريد الإبقاء عليه',
+    'merge.inBoxes': 'الصندوق {boxes}',
+    'merge.absorbBtn': 'دمج في هذا',
+    'merge.noMatches': 'لا توجد موديلات مطابقة.',
+    'confirm.mergeModels': 'هل تريد دمج ”{from}“ في ”{into}“؟ سيُحذف ”{from}“ وتُضاف صناديقه إلى ”{into}“. لا يمكن التراجع عن هذا.',
+    'toast.merged': 'تم الدمج في {name}',
+
+    'deletedBoxes.clearList': 'مسح القائمة',
+    'confirm.clearDeletedBoxes': 'هل تريد مسح قائمة الصناديق المحذوفة بالكامل؟ لن تتمكن من استرجاع أي منها بعد ذلك.',
+
+    'users.title': 'حسابات الموظفين',
+    'users.roleAdmin': 'مدير',
+    'users.roleStaff': 'موظف',
+    'users.resetPassword': 'إعادة تعيين كلمة المرور',
+    'users.remove': 'إزالة',
+    'users.addTitle': 'إضافة حساب موظف',
+    'users.usernameLabel': 'اسم المستخدم',
+    'users.passwordLabel': 'كلمة المرور',
+    'users.roleLabel': 'الصلاحية',
+    'users.addBtn': 'إضافة الحساب',
+    'users.newPasswordPrompt': 'كلمة المرور الجديدة لـ {username}:',
+    'users.passwordTooShort': 'يجب أن تتكون كلمة المرور من 4 أحرف على الأقل.',
+    'confirm.removeUser': 'هل تريد إزالة حساب {username}؟ لن يتمكن بعد ذلك من تسجيل الدخول.',
+    'toast.userAdded': 'تمت إضافة {username}',
+    'toast.userRemoved': 'تمت إزالة {username}',
+    'toast.passwordReset': 'تمت إعادة تعيين كلمة مرور {username}',
+
+    'activity.title': 'سجل النشاط',
+    'activity.bodyNonEmpty': 'من فعل ماذا، الأحدث أولًا.',
+    'activity.bodyEmpty': 'لا شيء مسجَّل بعد.',
+
+    'menu.themeToLight': 'الوضع الفاتح',
+    'menu.themeToDark': 'الوضع الداكن',
+    'menu.themeToSystem': 'مطابقة نظام ويندوز',
+
+    'shelf.allLabel': 'كل الموديلات',
+    'all.subtitle': 'كل الموديلات لديك — {models} في كل الصناديق. مكان جيد لملاحظة ما ينقصه صورة بعد.',
+    'all.filterAria': 'تصفية كل الموديلات',
+    'all.filterPlaceholder': 'تصفية كل الموديلات',
+  },
+};
+
+function raw(key) {
+  const lang = getLang();
+  return (D[lang] && D[lang][key]) ?? D.en[key] ?? key;
+}
+
+/** Look up `key` for the current language and fill in any {placeholders}. */
+export function t(key, vars) {
+  let s = raw(key);
+  if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, v);
+  return s;
+}
+
+function arCategory(n) {
+  if (n === 0) return 'zero';
+  if (n === 1) return 'one';
+  if (n === 2) return 'two';
+  const mod100 = n % 100;
+  if (mod100 >= 3 && mod100 <= 10) return 'few';
+  if (mod100 >= 11 && mod100 <= 99) return 'many';
+  return 'other';
+}
+
+const PLURALS = {
+  en: {
+    'count.models': { one: '{n} model', other: '{n} models' },
+    'count.boxes': { one: '{n} box', other: '{n} boxes' },
+    'count.matches': { one: '{n} match', other: '{n} matches' },
+    'count.searched': { one: 'Searched once', other: 'Searched {n} times' },
+  },
+  ar: {
+    'count.models': { zero: 'لا نماذج', one: 'نموذج واحد', two: 'نموذجان', few: '{n} نماذج', many: '{n} نموذجًا', other: '{n} نموذج' },
+    'count.boxes': { zero: 'لا صناديق', one: 'صندوق واحد', two: 'صندوقان', few: '{n} صناديق', many: '{n} صندوقًا', other: '{n} صندوق' },
+    'count.matches': { zero: 'لا تطابقات', one: 'تطابق واحد', two: 'تطابقان', few: '{n} تطابقات', many: '{n} تطابقًا', other: '{n} تطابق' },
+    'count.searched': { one: 'بُحث عنه مرة واحدة', two: 'بُحث عنه مرتين', few: 'بُحث عنه {n} مرات', many: 'بُحث عنه {n} مرة', other: 'بُحث عنه {n} مرة' },
+  },
+};
+
+/** A correctly-pluralized count phrase, e.g. plural('count.models', 3) -> "3 models" / "3 نماذج". */
+export function plural(key, n, vars = {}) {
+  const lang = getLang();
+  const forms = PLURALS[lang][key] || PLURALS.en[key];
+  const cat = lang === 'ar' ? arCategory(n) : n === 1 ? 'one' : 'other';
+  let s = (forms[cat] ?? forms.other).replaceAll('{n}', n);
+  for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, v);
+  return s;
+}

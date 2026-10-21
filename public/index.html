@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Glass Finder</title>
+  <meta name="theme-color" content="#0d1e26">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <script>
+    // Applied synchronously, before the stylesheet paints, so a forced Light/Dark choice never
+    // flashes the Windows-default theme first. Kept in sync with public/theme.js's own logic.
+    try {
+      var t = localStorage.getItem('gf_theme');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="wordmark" href="#/" aria-label="Glass Finder home">
+      <img src="logo-icon.png" alt="" class="brand-icon">
+      Glass Finder
+    </a>
+    <div class="top-actions">
+      <button class="btn primary" id="addBtn"><span aria-hidden="true">+</span> <span id="addLabel">Add models</span></button>
+      <button class="btn" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-label="More options">&#8943;</button>
+      <div class="menu" id="menu" hidden>
+        <button id="mMisses">Searches with no result <span class="badge" id="missBadge" hidden></span></button>
+        <button id="mDeletedBoxes">Deleted boxes <span class="badge" id="deletedBadge" hidden></span></button>
+        <button id="mLowStock">Low stock <span class="badge" id="lowStockBadge" hidden></span></button>
+        <button id="mReorder">Reorder report</button>
+        <button id="mUnknownBrand">Unknown brand <span class="badge" id="unknownBrandBadge" hidden></span></button>
+        <hr>
+        <button id="mFetch">Get missing photos</button>
+        <button id="mRetry">Retry photos that failed</button>
+        <button id="mPhotoSettings">Photo settings…</button>
+        <hr>
+        <a href="/api/export.csv" download id="mDownloadCsv">Download list for Excel (.csv)</a>
+        <a href="/api/backup.json" download id="mDownloadBackup">Download backup file</a>
+        <button id="mRestore">Restore from backup file…</button>
+        <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+        <a href="/api/license-backup" download id="mDownloadActivation">Download activation backup</a>
+        <hr id="mAdminHr" hidden>
+        <button id="mUsers" hidden>Manage staff…</button>
+        <button id="mActivity" hidden>Activity log</button>
+        <hr>
+        <button id="mLang">العربية</button>
+        <button id="mTheme">Dark mode</button>
+        <hr>
+        <div class="menu-user" id="menuUser"></div>
+        <button id="mChangePw">Change password</button>
+        <button id="mLogout">Log out</button>
+      </div>
+    </div>
+  </header>
+  <div class="status-row"><span class="pill" id="imgStatus" hidden></span></div>
+
+  <main>
+    <div class="searchbar">
+      <input id="q" type="search" dir="ltr" inputmode="search" autocomplete="off" autocapitalize="off" spellcheck="false"
+             placeholder="Type a phone model, e.g. A52, hot 10 play, redmi note 11" aria-label="Search phone models">
+      <button class="clear" id="clear" aria-label="Clear search" hidden>&times;</button>
+    </div>
+    <div id="view" aria-live="polite"></div>
+  </main>
+
+  <dialog id="detailDlg"></dialog>
+  <dialog id="addDlg"></dialog>
+  <dialog id="imgDlg"></dialog>
+  <dialog id="missDlg"></dialog>
+  <dialog id="deletedDlg"></dialog>
+  <dialog id="pwDlg"></dialog>
+  <dialog id="photoSettingsDlg"></dialog>
+  <dialog id="lowStockDlg"></dialog>
+  <dialog id="reorderDlg"></dialog>
+  <dialog id="unknownBrandDlg"></dialog>
+  <dialog id="mergeDlg"></dialog>
+  <dialog id="usersDlg"></dialog>
+  <dialog id="activityDlg"></dialog>
+  <div id="gate" hidden></div>
+  <div id="toasts" role="status"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

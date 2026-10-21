@@ -1,0 +1,8 @@
+{
+  "name": "glass-finder",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Find which box holds the screen protector for a phone model",
+  "scripts": { "start": "node server.mjs" }
+}
