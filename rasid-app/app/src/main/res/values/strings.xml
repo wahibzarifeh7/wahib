@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">رصيد</string>
+    <string name="ussd_capture_label">رصيد — التقاط ردود USSD</string>
+    <string name="ussd_capture_description">يقرأ رد الشبكة على طلبات USSD التي يرسلها تطبيق رصيد عبر الاتصال، ولا يقرأ أي شاشة أخرى.</string>
+</resources>
