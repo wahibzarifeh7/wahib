@@ -58,6 +58,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val categories = repo.categories.state(emptyList())
     val customers = repo.customers.state(emptyList())
     val customerBalances = repo.customerBalances.state(emptyMap())
+    val knownNumbers = repo.knownNumbers.state(emptyList())
     val shifts = repo.shifts.state(emptyList())
     val openShift = repo.openShift.state(null)
     val shiftTransactions: StateFlow<List<TransactionEntity>> =

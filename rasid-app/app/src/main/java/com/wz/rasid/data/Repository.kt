@@ -5,8 +5,11 @@ import androidx.room.withTransaction
 import com.wz.rasid.core.Accounting
 import com.wz.rasid.core.Carrier
 import com.wz.rasid.core.Channel
+import com.wz.rasid.core.KnownNumber
 import com.wz.rasid.core.LedgerEntry
 import com.wz.rasid.core.MtnCodes
+import com.wz.rasid.core.NumberSuggestions
+import com.wz.rasid.core.OpType
 import com.wz.rasid.core.SyriatelCodes
 import com.wz.rasid.core.TxStatus
 import com.wz.rasid.core.UssdCodes
@@ -90,6 +93,22 @@ class Repository(private val db: AppDatabase) {
             }
             payments.forEach { totals.merge(it.customerId, -it.amount) { a, b -> a + b } }
             totals.mapValues { Accounting.round2(it.value) }
+        }
+
+    val knownNumbers: Flow<List<KnownNumber>> =
+        combine(dao.observeNumberUsage(), dao.observeCustomers()) { usage, customers ->
+            NumberSuggestions.merge(
+                usage.map {
+                    KnownNumber(
+                        number = it.target,
+                        carrier = it.channel.carrier,
+                        isLandline = it.channel.type == OpType.DSL,
+                        lastUsed = it.lastUsed,
+                        uses = it.uses,
+                    )
+                },
+                customers.associate { it.phone to it.name },
+            )
         }
 
     fun transactions(shiftId: Long?, from: Long, to: Long): Flow<List<TransactionEntity>> =

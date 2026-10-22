@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -40,12 +41,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.wz.rasid.core.Accounting
 import com.wz.rasid.core.Carrier
 import com.wz.rasid.core.Category
 import com.wz.rasid.core.Channel
+import com.wz.rasid.core.KnownNumber
+import com.wz.rasid.core.NumberSuggestions
 import com.wz.rasid.core.OpType
 import com.wz.rasid.core.UssdCodes
 import com.wz.rasid.data.CustomerEntity
@@ -59,6 +67,7 @@ fun TransferScreen(vm: MainViewModel) {
     val categories by vm.categories.collectAsState()
     val customers by vm.customers.collectAsState()
     val shiftTx by vm.shiftTransactions.collectAsState()
+    val knownNumbers by vm.knownNumbers.collectAsState()
 
     var carrier by rememberSaveable { mutableStateOf(Carrier.MTN) }
     var type by rememberSaveable { mutableStateOf(OpType.PREPAID) }
@@ -181,6 +190,19 @@ fun TransferScreen(vm: MainViewModel) {
                 if (channel.type == OpType.DSL) "الهاتف الأرضي (مثال: 011-2223333)" else "رقم الموبايل",
                 keyboardType = KeyboardType.Phone,
             )
+
+            val landline = channel.type == OpType.DSL
+            val suggestions = remember(target, knownNumbers, landline) {
+                NumberSuggestions.suggest(target, knownNumbers, landline)
+            }
+            NumberSuggestionList(target, landline, suggestions) { k ->
+                // A number belongs to one network, so follow it when picking a mobile.
+                if (!landline && k.carrier != null && k.carrier != carrier) {
+                    carrier = k.carrier
+                    if (Channel.of(k.carrier, type) == null) type = OpType.PREPAID
+                }
+                setTarget(k.number)
+            }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (selectedCustomer != null) {
@@ -322,4 +344,43 @@ private fun NewDebtCustomerDialog(phone: String, onDismiss: () -> Unit, onPick: 
             }
         },
     )
+}
+
+/** Previously used numbers that complete what has been typed; the untyped rest is highlighted. */
+@Composable
+private fun NumberSuggestionList(typed: String, landline: Boolean, suggestions: List<KnownNumber>, onPick: (KnownNumber) -> Unit) {
+    if (suggestions.isEmpty()) return
+    val prefixLength = NumberSuggestions.typedDigits(typed, landline).length
+    Card(Modifier.fillMaxWidth()) {
+        suggestions.forEachIndexed { i, k ->
+            if (i > 0) HorizontalDivider()
+            Row(
+                Modifier.fillMaxWidth().clickable { onPick(k) }.padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val digitsOnly = k.number.all(Char::isDigit)
+                Text(
+                    buildAnnotatedString {
+                        if (digitsOnly && prefixLength <= k.number.length) {
+                            append(k.number.take(prefixLength))
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)) {
+                                append(k.number.drop(prefixLength))
+                            }
+                        } else {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(k.number) }
+                        }
+                    },
+                    style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Ltr),
+                )
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    if (k.name.isNotBlank()) Text(k.name, style = MaterialTheme.typography.bodyMedium)
+                    val info = listOfNotNull(
+                        k.carrier?.label,
+                        if (k.uses > 0) "${k.uses} عملية" else "زبون محفوظ",
+                    ).joinToString(" · ")
+                    Text(info, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
 }

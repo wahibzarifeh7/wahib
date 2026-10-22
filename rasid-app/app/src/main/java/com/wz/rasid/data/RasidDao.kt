@@ -30,6 +30,13 @@ interface RasidDao {
     @Query("SELECT * FROM transactions WHERE isDebt = 1 AND customerId IS NOT NULL")
     fun observeDebtTransactions(): Flow<List<TransactionEntity>>
 
+    /** Numbers from completed operations only, so mistyped numbers from failed transfers are never suggested. */
+    @Query(
+        "SELECT target, channel, MAX(timestamp) AS lastUsed, COUNT(*) AS uses FROM transactions " +
+            "WHERE status IN ('SUCCESS', 'RECORDED') GROUP BY target",
+    )
+    fun observeNumberUsage(): Flow<List<NumberUsage>>
+
     @Query("SELECT * FROM transactions ORDER BY timestamp DESC LIMIT 1")
     suspend fun lastTransaction(): TransactionEntity?
 

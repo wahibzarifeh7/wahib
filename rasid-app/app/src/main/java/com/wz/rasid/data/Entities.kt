@@ -84,6 +84,14 @@ data class ChannelBalanceEntity(
     val updatedAt: Long,
 )
 
+/** One row per number used in completed operations; [channel] is the one used most recently. */
+data class NumberUsage(
+    val target: String,
+    val channel: Channel,
+    val lastUsed: Long,
+    val uses: Int,
+)
+
 fun ChannelBalanceEntity.isLow(): Boolean = minimum > 0 && current <= minimum
 
 @Entity(tableName = "categories", indices = [Index("carrier")])
