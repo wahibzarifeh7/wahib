@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Overlay for the offline build: distinct launcher name so both apps can be installed side by side. -->
+<resources>
+    <string name="app_name">WZExchange Offline</string>
+</resources>

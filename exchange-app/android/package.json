@@ -1,0 +1,16 @@
+{
+  "name": "wzexchange-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Build-time assets for the offline WZExchange APK (Tailwind CSS + bundled fonts)",
+  "scripts": {
+    "prepare-offline": "node scripts/prepare-offline.js"
+  },
+  "devDependencies": {
+    "@fontsource/cairo": "^5.1.0",
+    "@fontsource/fraunces": "^5.1.0",
+    "@fontsource/ibm-plex-mono": "^5.1.0",
+    "@fontsource/inter": "^5.1.0",
+    "tailwindcss": "^3.4.17"
+  }
+}
