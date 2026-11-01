@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -16,6 +18,8 @@ import android.webkit.WebViewClient;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 // One shell, two builds (see build.sh):
 //
@@ -27,6 +31,10 @@ import java.io.InputStream;
 //   assets/app/. It is served from a fixed https origin (the same trick as
 //   androidx WebViewAssetLoader) rather than file://, so localStorage has a
 //   stable home and crypto.subtle (used for password hashing) is available.
+//   A WebView can't download blobs or open files on its own, so this build also
+//   exposes window.WZAndroid.saveFile (system "save to" picker, used for backups
+//   and CSV exports) and answers <input type=file> with the system file picker
+//   (used to restore a backup).
 public class MainActivity extends Activity {
     static final String ONLINE_URL = "https://wzexchange.netlify.app/";
     static final String ONLINE_HOST = "wzexchange.netlify.app";
@@ -34,11 +42,15 @@ public class MainActivity extends Activity {
     static final String LOCAL_URL = "https://" + LOCAL_HOST + "/index.html";
     static final String LOCAL_ASSET_DIR = "app/";
     static final String NO_CONNECTION_URL = "file:///android_asset/offline.html";
+    static final int REQUEST_SAVE_FILE = 1;
+    static final int REQUEST_OPEN_FILE = 2;
 
     private WebView web;
     private boolean offlineBuild;
     private String appHost;
     private String appUrl;
+    private String pendingSaveText;
+    private ValueCallback<Uri[]> pendingFileChooser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +70,28 @@ public class MainActivity extends Activity {
         s.setAllowContentAccess(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
-        web.setWebChromeClient(new WebChromeClient());
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback,
+                                             FileChooserParams params) {
+                if (!offlineBuild) return false;
+                if (pendingFileChooser != null) pendingFileChooser.onReceiveValue(null);
+                pendingFileChooser = callback;
+                // "*/*" rather than the page's accept list: file managers label .json
+                // files inconsistently, and the page validates whatever is picked.
+                Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT)
+                        .addCategory(Intent.CATEGORY_OPENABLE)
+                        .setType("*/*");
+                try {
+                    startActivityForResult(pick, REQUEST_OPEN_FILE);
+                } catch (ActivityNotFoundException e) {
+                    pendingFileChooser = null;
+                    return false;
+                }
+                return true;
+            }
+        });
+        if (offlineBuild) web.addJavascriptInterface(new FileBridge(), "WZAndroid");
         web.setWebViewClient(new WebViewClient() {
             // The String overload is the one in the API 23 SDK this compiles against;
             // newer WebViews route the WebResourceRequest overload to it by default.
@@ -102,6 +135,57 @@ public class MainActivity extends Activity {
         if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) {
             web.loadUrl(appUrl);
         }
+    }
+
+    class FileBridge {
+        @JavascriptInterface
+        public void saveFile(final String filename, final String mime, final String text) {
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    pendingSaveText = text;
+                    Intent save = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                            .addCategory(Intent.CATEGORY_OPENABLE)
+                            .setType(mime)
+                            .putExtra(Intent.EXTRA_TITLE, filename);
+                    try {
+                        startActivityForResult(save, REQUEST_SAVE_FILE);
+                    } catch (ActivityNotFoundException e) {
+                        pendingSaveText = null;
+                        notifySaved(false);
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_OPEN_FILE) {
+            if (pendingFileChooser != null) {
+                pendingFileChooser.onReceiveValue(
+                        WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+                pendingFileChooser = null;
+            }
+        } else if (requestCode == REQUEST_SAVE_FILE) {
+            String text = pendingSaveText;
+            pendingSaveText = null;
+            boolean ok = false;
+            if (resultCode == RESULT_OK && data != null && data.getData() != null && text != null) {
+                try (OutputStream out = getContentResolver().openOutputStream(data.getData(), "wt")) {
+                    out.write(text.getBytes(StandardCharsets.UTF_8));
+                    ok = true;
+                } catch (IOException | RuntimeException e) {
+                    ok = false;
+                }
+            }
+            notifySaved(ok);
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void notifySaved(boolean ok) {
+        web.evaluateJavascript("window.__wzFileSaved && window.__wzFileSaved(" + ok + ")", null);
     }
 
     private boolean hasAsset(String name) {

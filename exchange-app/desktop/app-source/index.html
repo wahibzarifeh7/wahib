@@ -336,6 +336,18 @@
             <h2 class="font-display text-lg mb-4" data-i18n="loginActivity">Login Activity</h2>
             <div id="login-log-mount" class="space-y-2 max-h-72 overflow-y-auto pe-1"></div>
           </div>
+          <div class="panel rounded-xl p-5 mt-5">
+            <h2 class="font-display text-lg mb-1" data-i18n="backupExport">Backup &amp; Export</h2>
+            <p class="text-xs text-paper-dim mb-1 leading-relaxed" data-i18n="backupDesc">All data lives only on this device. Save a backup file regularly and keep a copy somewhere else (email, cloud drive, USB).</p>
+            <p id="last-backup-label" class="text-xs text-paper-dim mb-4"></p>
+            <div class="space-y-2">
+              <button data-action="download-backup" class="btn btn-brass rounded-lg px-4 py-2.5 text-sm w-full" data-i18n="downloadBackupBtn">Save Backup File</button>
+              <button data-action="restore-backup" class="btn btn-ghost rounded-lg px-4 py-2.5 text-sm w-full" data-i18n="restoreBackupBtn">Restore from Backup</button>
+              <button data-action="export-txns-csv" class="btn btn-ghost rounded-lg px-4 py-2.5 text-sm w-full" data-i18n="exportTxnsBtn">Export Transactions (CSV)</button>
+              <button data-action="export-days-csv" class="btn btn-ghost rounded-lg px-4 py-2.5 text-sm w-full" data-i18n="exportDaysBtn">Export Day History (CSV)</button>
+            </div>
+            <input id="restore-file-input" type="file" accept=".json,application/json" class="hidden" />
+          </div>
           <div class="panel rounded-xl p-5 mt-5 border-rose/30">
             <h2 class="font-display text-lg mb-1 text-rose-bright" data-i18n="dangerZone">Danger Zone</h2>
             <p class="text-xs text-paper-dim mb-4 leading-relaxed" data-i18n="dangerZoneDesc">Wipe all transactions, rate history, archived days, reserve adjustments, and login activity. Reserves and rates reset to their starting defaults. Staff accounts are kept &mdash; use this to start using the app fresh.</p>
@@ -378,6 +390,8 @@
   /* ================= constants ================= */
   var DB_KEY = 'sarraf_exchange_db_v1';
   var SESSION_KEY = 'sarraf_exchange_session_v1';
+  var LAST_BACKUP_KEY = 'sarraf_exchange_last_backup_v1';
+  var BACKUP_FORMAT = 1;
   var LANG_KEY = 'sarraf_exchange_lang_v1';
 
   /* ================= i18n ================= */
@@ -471,6 +485,16 @@
       passwordTooShort: 'Password must be at least 4 characters.',
       accountCreatedToast: 'Account created for {username}.',
       loginActivity: 'Login Activity', noLoginsYet: 'No logins recorded yet.',
+      backupExport: 'Backup & Export',
+      backupDesc: 'All data lives only on this device. Save a backup file regularly and keep a copy somewhere else (email, cloud drive, USB).',
+      lastBackupLabel: 'Last backup: {time}', lastBackupNever: 'Last backup: never',
+      downloadBackupBtn: 'Save Backup File', restoreBackupBtn: 'Restore from Backup',
+      exportTxnsBtn: 'Export Transactions (CSV)', exportDaysBtn: 'Export Day History (CSV)',
+      backupSavedToast: 'Backup saved.', exportSavedToast: 'Export saved.', saveCancelledToast: 'Save cancelled.',
+      restoreInvalidToast: 'That file is not a WZExchange backup.',
+      restoreConfirmTitle: 'Restore this backup?',
+      restoreConfirmBody: 'Backup from {time}: {txns} transactions, {days} closed days, {users} accounts. Everything currently in the app will be replaced. Save a backup of the current data first if you might need it.',
+      restoreConfirmBtn: 'Replace and Restore', backupRestoredToast: 'Backup restored.',
       dangerZone: 'Danger Zone',
       dangerZoneDesc: 'Wipe all transactions, rate history, archived days, reserve adjustments, and login activity. Reserves and rates reset to their starting defaults. Staff accounts are kept — use this to start using the app fresh.',
       resetAllDataBtn: 'Reset All Data', staffAccounts: 'Staff Accounts',
@@ -594,6 +618,16 @@
       passwordTooShort: 'يجب أن تتكون كلمة المرور من 4 أحرف على الأقل.',
       accountCreatedToast: 'تم إنشاء حساب لـ {username}.',
       loginActivity: 'سجل تسجيل الدخول', noLoginsYet: 'لم يتم تسجيل أي دخول بعد.',
+      backupExport: 'النسخ الاحتياطي والتصدير',
+      backupDesc: 'كل البيانات محفوظة على هذا الجهاز فقط. احفظ ملف نسخة احتياطية بانتظام واحتفظ بنسخة منه في مكان آخر (البريد الإلكتروني، التخزين السحابي، ذاكرة USB).',
+      lastBackupLabel: 'آخر نسخة احتياطية: {time}', lastBackupNever: 'آخر نسخة احتياطية: لا يوجد',
+      downloadBackupBtn: 'حفظ ملف نسخة احتياطية', restoreBackupBtn: 'استعادة من نسخة احتياطية',
+      exportTxnsBtn: 'تصدير المعاملات (CSV)', exportDaysBtn: 'تصدير سجل الأيام (CSV)',
+      backupSavedToast: 'تم حفظ النسخة الاحتياطية.', exportSavedToast: 'تم حفظ ملف التصدير.', saveCancelledToast: 'تم إلغاء الحفظ.',
+      restoreInvalidToast: 'هذا الملف ليس نسخة احتياطية من WZExchange.',
+      restoreConfirmTitle: 'استعادة هذه النسخة الاحتياطية؟',
+      restoreConfirmBody: 'نسخة احتياطية بتاريخ {time}: {txns} معاملة، {days} يوم مغلق، {users} حساب. سيتم استبدال كل البيانات الموجودة حاليًا في التطبيق. احفظ نسخة احتياطية من البيانات الحالية أولًا إذا كنت قد تحتاجها.',
+      restoreConfirmBtn: 'استبدال واستعادة', backupRestoredToast: 'تمت استعادة النسخة الاحتياطية.',
       dangerZone: 'منطقة الخطر',
       dangerZoneDesc: 'حذف جميع المعاملات وسجل الأسعار والأيام المؤرشفة وتعديلات الاحتياطي وسجل الدخول. تُعاد ضبط الاحتياطي والأسعار إلى قيمها الافتراضية. تبقى حسابات الموظفين كما هي — استخدم هذا لبدء استخدام التطبيق من جديد.',
       resetAllDataBtn: 'إعادة تعيين كل البيانات', staffAccounts: 'حسابات الموظفين',
@@ -1312,6 +1346,14 @@
     }
   }
 
+  function renderBackupInfo() {
+    var el = document.getElementById('last-backup-label');
+    if (!el) return;
+    var last = null;
+    try { last = localStorage.getItem(LAST_BACKUP_KEY); } catch (e) { }
+    el.textContent = last ? t('lastBackupLabel', { time: fmtDateTime(last) }) : t('lastBackupNever');
+  }
+
   /* ================= render: all ================= */
   function renderAll() {
     renderSessionBadges();
@@ -1324,6 +1366,7 @@
     renderReserveAdjust();
     renderDayHistoryTable();
     renderAdmin();
+    renderBackupInfo();
     document.getElementById('footer-day-started').textContent = t('dayStartedFooter', { time: fmtDateTime(state.dayStart.startedAt) });
   }
 
@@ -1812,6 +1855,131 @@
     });
   }
 
+  /* ================= actions: backup & export ================= */
+  // Saves a text file. In a browser or the desktop app this is a normal download;
+  // inside the Android app the page can't download files, so the app exposes a
+  // WZAndroid bridge that opens the system "save to" picker and reports back
+  // through window.__wzFileSaved(ok).
+  function saveTextFile(filename, mime, text, onDone) {
+    if (window.WZAndroid && window.WZAndroid.saveFile) {
+      window.__wzFileSaved = function (ok) { window.__wzFileSaved = null; onDone(!!ok); };
+      window.WZAndroid.saveFile(filename, mime, text);
+      return;
+    }
+    var url = URL.createObjectURL(new Blob([text], { type: mime }));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+    onDone(true);
+  }
+
+  function fileStamp() {
+    var d = new Date();
+    function p(n) { return String(n).padStart(2, '0'); }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes());
+  }
+
+  function csvDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    function p(n) { return String(n).padStart(2, '0'); }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+
+  function toCsv(header, rows) {
+    function cell(v) {
+      var str = v == null ? '' : String(v);
+      // Text that starts like a formula (e.g. a note "=1+1") is kept as plain text in spreadsheets.
+      if (typeof v === 'string' && /^[=+\-@\t\r]/.test(str)) str = "'" + str;
+      return /[",\r\n]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+    }
+    // Leading BOM so Excel opens Arabic names/notes as UTF-8.
+    return '\ufeff' + [header].concat(rows).map(function (r) { return r.map(cell).join(','); }).join('\r\n') + '\r\n';
+  }
+
+  function handleDownloadBackup() {
+    var payload = { app: 'WZExchange', format: BACKUP_FORMAT, exportedAt: nowIso(), exportedBy: session.username, data: state };
+    saveTextFile('wzexchange-backup-' + fileStamp() + '.json', 'application/json', JSON.stringify(payload, null, 1), function (ok) {
+      if (!ok) { toast(t('saveCancelledToast'), 'error'); return; }
+      try { localStorage.setItem(LAST_BACKUP_KEY, payload.exportedAt); } catch (e) { }
+      renderBackupInfo();
+      toast(t('backupSavedToast'));
+    });
+  }
+
+  function handleExportTxnsCsv() {
+    var rows = state.transactions.slice().sort(function (a, b) { return a.at < b.at ? -1 : 1; }).map(function (x) {
+      return [csvDate(x.at), x.type, x.amountUsd, x.rateApplied, x.amountSyp,
+        x.calculatedSyp != null ? x.calculatedSyp : x.amountSyp, x.varianceSyp || 0,
+        x.usdAfter, x.sypAfter, x.operator, x.note];
+    });
+    var csv = toCsv(['Date', 'Type', 'USD', 'Rate', 'SYP', 'Calculated SYP', 'Cash Variance SYP', 'USD Balance', 'SYP Balance', 'Operator', 'Note'], rows);
+    saveTextFile('wzexchange-transactions-' + fileStamp() + '.csv', 'text/csv', csv, function (ok) {
+      toast(ok ? t('exportSavedToast') : t('saveCancelledToast'), ok ? 'success' : 'error');
+    });
+  }
+
+  function handleExportDaysCsv() {
+    var rows = state.dayHistory.map(function (d) {
+      return [csvDate(d.openedAt), csvDate(d.closedAt), d.closedBy, d.openUsd, d.openSyp, d.closeUsd, d.closeSyp,
+        d.buyVolumeUsd, d.sellVolumeUsd, d.txnCount, d.profit, d.cashVariance || 0];
+    });
+    var csv = toCsv(['Opened', 'Closed', 'Closed By', 'Open USD', 'Open SYP', 'Close USD', 'Close SYP', 'Buy Volume USD', 'Sell Volume USD', 'Trades', 'Profit SYP', 'Cash Variance SYP'], rows);
+    saveTextFile('wzexchange-days-' + fileStamp() + '.csv', 'text/csv', csv, function (ok) {
+      toast(ok ? t('exportSavedToast') : t('saveCancelledToast'), ok ? 'success' : 'error');
+    });
+  }
+
+  function isValidBackup(b) {
+    var d = b && b.data;
+    return !!(b && b.app === 'WZExchange' && typeof b.format === 'number' && b.format <= BACKUP_FORMAT && d &&
+      Array.isArray(d.users) && d.users.some(function (u) { return u && u.role === 'admin' && u.username && u.passwordHash; }) &&
+      Array.isArray(d.transactions) && d.rates && d.reserves && d.dayStart);
+  }
+
+  function handleRestoreFile(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var backup = null;
+      try { backup = JSON.parse(reader.result); } catch (e) { }
+      if (!isValidBackup(backup)) { toast(t('restoreInvalidToast'), 'error'); return; }
+      var d = backup.data;
+      confirmModal({
+        title: t('restoreConfirmTitle'),
+        body: esc(t('restoreConfirmBody', {
+          time: fmtDateTime(backup.exportedAt), txns: d.transactions.length,
+          days: (d.dayHistory || []).length, users: d.users.length,
+        })),
+        confirmLabel: t('restoreConfirmBtn'),
+        danger: true,
+        onConfirm: function () {
+          localStorage.setItem(DB_KEY, JSON.stringify(d));
+          state = loadState();
+          toast(t('backupRestoredToast'));
+          // The signed-in account may not exist (or may differ) in the restored data.
+          if (state.users.some(function (u) { return u.id === session.userId; })) {
+            renderAll();
+          } else {
+            handleLogout();
+          }
+        },
+      });
+    };
+    reader.onerror = function () { toast(t('restoreInvalidToast'), 'error'); };
+    reader.readAsText(file);
+  }
+
+  document.addEventListener('change', function (e) {
+    if (e.target.id !== 'restore-file-input') return;
+    var file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (file) handleRestoreFile(file);
+  });
+
   /* ================= event delegation ================= */
   document.addEventListener('submit', function (e) {
     var form = e.target.closest('form[data-form]');
@@ -1842,6 +2010,10 @@
     else if (action === 'edit-txn') openEditTxnModal(btn.dataset.id);
     else if (action === 'delete-txn') handleDeleteTxn(btn.dataset.id);
     else if (action === 'factory-reset') handleFactoryReset();
+    else if (action === 'download-backup') handleDownloadBackup();
+    else if (action === 'restore-backup') document.getElementById('restore-file-input').click();
+    else if (action === 'export-txns-csv') handleExportTxnsCsv();
+    else if (action === 'export-days-csv') handleExportDaysCsv();
     else if (action === 'set-lang') setLang(btn.dataset.lang);
   });
 
