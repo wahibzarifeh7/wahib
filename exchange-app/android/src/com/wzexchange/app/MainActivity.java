@@ -3,6 +3,8 @@ package com.wzexchange.app;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ProviderInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.json.JSONObject;
 
 // One shell, two builds (see build.sh):
 //
@@ -35,6 +41,11 @@ import java.nio.charset.StandardCharsets;
 //   exposes window.WZAndroid.saveFile (system "save to" picker, used for backups
 //   and CSV exports) and answers <input type=file> with the system file picker
 //   (used to restore a backup).
+//
+//   Automatic backup: the user picks one file once (normally in Google Drive)
+//   through the system "save to" picker; the app keeps a persistable write grant
+//   for it and the page rewrites it through autoBackupWrite. The Drive app does
+//   the upload, so no Google sign-in or API key is involved here.
 public class MainActivity extends Activity {
     static final String ONLINE_URL = "https://wzexchange.netlify.app/";
     static final String ONLINE_HOST = "wzexchange.netlify.app";
@@ -44,6 +55,8 @@ public class MainActivity extends Activity {
     static final String NO_CONNECTION_URL = "file:///android_asset/offline.html";
     static final int REQUEST_SAVE_FILE = 1;
     static final int REQUEST_OPEN_FILE = 2;
+    static final int REQUEST_AUTO_TARGET = 3;
+    static final String PREFS = "autobackup";
 
     private WebView web;
     private boolean offlineBuild;
@@ -51,6 +64,7 @@ public class MainActivity extends Activity {
     private String appUrl;
     private String pendingSaveText;
     private ValueCallback<Uri[]> pendingFileChooser;
+    private final ExecutorService backupWriter = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,6 +170,135 @@ public class MainActivity extends Activity {
                 }
             });
         }
+
+        @JavascriptInterface
+        public void autoBackupChoose(final String filename) {
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    Intent pick = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                            .addCategory(Intent.CATEGORY_OPENABLE)
+                            .setType("application/json")
+                            .putExtra(Intent.EXTRA_TITLE, filename)
+                            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                    try {
+                        startActivityForResult(pick, REQUEST_AUTO_TARGET);
+                    } catch (ActivityNotFoundException e) {
+                        callJs("__wzAutoBackupChosen", null, "no_picker");
+                    }
+                }
+            });
+        }
+
+        // {"name": file name, "provider": app that stores it} or "" when none is set.
+        @JavascriptInterface
+        public String autoBackupTarget() {
+            SharedPreferences p = getSharedPreferences(PREFS, MODE_PRIVATE);
+            if (p.getString("uri", null) == null) return "";
+            try {
+                return new JSONObject()
+                        .put("name", p.getString("name", ""))
+                        .put("provider", p.getString("provider", ""))
+                        .toString();
+            } catch (org.json.JSONException e) {
+                return "";
+            }
+        }
+
+        @JavascriptInterface
+        public void autoBackupClear() {
+            SharedPreferences p = getSharedPreferences(PREFS, MODE_PRIVATE);
+            String uri = p.getString("uri", null);
+            if (uri != null) {
+                try {
+                    getContentResolver().releasePersistableUriPermission(Uri.parse(uri),
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                } catch (SecurityException ignored) { }
+            }
+            p.edit().clear().apply();
+        }
+
+        // Writes in the background; answers window.__wzAutoBackupDone(ok, errorCode).
+        @JavascriptInterface
+        public void autoBackupWrite(final String text) {
+            final String uri = getSharedPreferences(PREFS, MODE_PRIVATE).getString("uri", null);
+            backupWriter.execute(new Runnable() {
+                public void run() {
+                    String error = null;
+                    if (uri == null) {
+                        error = "no_target";
+                    } else {
+                        try {
+                            writeTruncating(Uri.parse(uri), text.getBytes(StandardCharsets.UTF_8));
+                        } catch (SecurityException e) {
+                            error = "permission";
+                        } catch (IOException | RuntimeException e) {
+                            error = "io";
+                        }
+                    }
+                    final String err = error;
+                    runOnUiThread(new Runnable() {
+                        public void run() { callJs("__wzAutoBackupDone", err == null, err); }
+                    });
+                }
+            });
+        }
+    }
+
+    // Only truncating modes: a plain "w" may leave the tail of a longer previous
+    // backup in place, which would corrupt the JSON.
+    private void writeTruncating(Uri uri, byte[] bytes) throws IOException {
+        OutputStream out;
+        try {
+            out = getContentResolver().openOutputStream(uri, "wt");
+        } catch (IllegalArgumentException | java.io.FileNotFoundException e) {
+            out = getContentResolver().openOutputStream(uri, "rwt");
+        }
+        if (out == null) throw new IOException("no stream");
+        try {
+            out.write(bytes);
+        } finally {
+            out.close();
+        }
+    }
+
+    private String providerLabel(Uri uri) {
+        String authority = uri.getAuthority();
+        if (authority != null && authority.startsWith("com.google.android.apps.docs")) return "Google Drive";
+        ProviderInfo info = authority == null ? null : getPackageManager().resolveContentProvider(authority, 0);
+        if (info == null) return "";
+        CharSequence label = info.applicationInfo.loadLabel(getPackageManager());
+        return label == null ? "" : label.toString();
+    }
+
+    private String displayName(Uri uri) {
+        try (android.database.Cursor c = getContentResolver().query(uri,
+                new String[] { android.provider.OpenableColumns.DISPLAY_NAME }, null, null, null)) {
+            if (c != null && c.moveToFirst()) return c.getString(0);
+        } catch (RuntimeException ignored) { }
+        String last = uri.getLastPathSegment();
+        return last == null ? "" : last;
+    }
+
+    // Calls window[fn](args...) with JSON-encoded arguments.
+    private void callJs(String fn, Object... args) {
+        StringBuilder js = new StringBuilder("window.").append(fn).append(" && window.").append(fn).append("(");
+        for (int i = 0; i < args.length; i++) {
+            if (i > 0) js.append(',');
+            Object a = args[i];
+            if (a == null) js.append("null");
+            else if (a instanceof Boolean) js.append(a.toString());
+            else js.append(JSONObject.quote(a.toString()));
+        }
+        web.evaluateJavascript(js.append(")").toString(), null);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Lets the page flush a pending automatic backup before the app is backgrounded.
+        if (offlineBuild) web.evaluateJavascript("window.__wzOnPause && window.__wzOnPause()", null);
     }
 
     @Override
@@ -179,6 +322,27 @@ public class MainActivity extends Activity {
                 }
             }
             notifySaved(ok);
+        } else if (requestCode == REQUEST_AUTO_TARGET) {
+            Uri uri = resultCode == RESULT_OK && data != null ? data.getData() : null;
+            if (uri == null) {
+                callJs("__wzAutoBackupChosen", null, "cancelled");
+                return;
+            }
+            try {
+                getContentResolver().takePersistableUriPermission(uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            } catch (SecurityException e) {
+                callJs("__wzAutoBackupChosen", null, "not_persistable");
+                return;
+            }
+            String old = getSharedPreferences(PREFS, MODE_PRIVATE).getString("uri", null);
+            if (old != null && !old.equals(uri.toString())) new FileBridge().autoBackupClear();
+            getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                    .putString("uri", uri.toString())
+                    .putString("name", displayName(uri))
+                    .putString("provider", providerLabel(uri))
+                    .apply();
+            callJs("__wzAutoBackupChosen", new FileBridge().autoBackupTarget(), null);
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }

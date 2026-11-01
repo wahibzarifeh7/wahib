@@ -347,6 +347,25 @@
               <button data-action="export-days-csv" class="btn btn-ghost rounded-lg px-4 py-2.5 text-sm w-full" data-i18n="exportDaysBtn">Export Day History (CSV)</button>
             </div>
             <input id="restore-file-input" type="file" accept=".json,application/json" class="hidden" />
+            <div id="auto-backup-section" class="hidden mt-5 pt-5 border-t border-ink-800">
+              <h3 class="text-sm font-semibold mb-1" data-i18n="autoBackupTitle">Automatic Backup to Google Drive</h3>
+              <p class="text-xs text-paper-dim mb-3 leading-relaxed" data-i18n="autoBackupDesc">Pick a file in Google Drive once; the app keeps it up to date with your latest data. Restore it with "Restore from Backup" on any phone.</p>
+              <p class="text-xs mb-1"><span class="text-paper-dim" data-i18n="autoBackupLocation">Backup file:</span> <span id="auto-backup-target" class="font-medium" dir="auto"></span></p>
+              <p id="auto-backup-status" class="text-xs text-paper-dim mb-3"></p>
+              <label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5" data-i18n="autoBackupWhen">Back up</label>
+              <select id="auto-backup-freq" class="field-input w-full rounded-lg px-3 py-2.5 text-sm mb-3">
+                <option value="change" data-i18n="autoFreqChange">After every transaction</option>
+                <option value="1" data-i18n="autoFreq1">Every hour</option>
+                <option value="6" data-i18n="autoFreq6">Every 6 hours</option>
+                <option value="12" data-i18n="autoFreq12">Every 12 hours</option>
+                <option value="24" data-i18n="autoFreq24">Once a day</option>
+              </select>
+              <div class="flex flex-wrap gap-2">
+                <button data-action="auto-backup-choose" id="auto-backup-choose-btn" class="btn btn-brass rounded-lg px-4 py-2.5 text-sm flex-1" data-i18n="autoBackupChooseBtn">Choose Drive File</button>
+                <button data-action="auto-backup-now" id="auto-backup-now-btn" class="btn btn-ghost rounded-lg px-4 py-2.5 text-sm" data-i18n="autoBackupNowBtn">Sync Now</button>
+                <button data-action="auto-backup-off" id="auto-backup-off-btn" class="btn btn-ghost rounded-lg px-4 py-2.5 text-sm" data-i18n="autoBackupOffBtn">Turn Off</button>
+              </div>
+            </div>
           </div>
           <div class="panel rounded-xl p-5 mt-5 border-rose/30">
             <h2 class="font-display text-lg mb-1 text-rose-bright" data-i18n="dangerZone">Danger Zone</h2>
@@ -392,6 +411,7 @@
   var SESSION_KEY = 'sarraf_exchange_session_v1';
   var LAST_BACKUP_KEY = 'sarraf_exchange_last_backup_v1';
   var BACKUP_FORMAT = 1;
+  var AUTO_BACKUP_KEY = 'sarraf_exchange_autobackup_v1';
   var LANG_KEY = 'sarraf_exchange_lang_v1';
 
   /* ================= i18n ================= */
@@ -495,6 +515,21 @@
       restoreConfirmTitle: 'Restore this backup?',
       restoreConfirmBody: 'Backup from {time}: {txns} transactions, {days} closed days, {users} accounts. Everything currently in the app will be replaced. Save a backup of the current data first if you might need it.',
       restoreConfirmBtn: 'Replace and Restore', backupRestoredToast: 'Backup restored.',
+      autoBackupTitle: 'Automatic Backup to Google Drive',
+      autoBackupDesc: 'Pick a file in Google Drive once; the app keeps it up to date with your latest data. Restore it with "Restore from Backup" on any phone.',
+      autoBackupLocation: 'Backup file:', autoBackupNotSet: 'not set (automatic backup is off)',
+      autoBackupWhen: 'Back up', autoFreqChange: 'After every transaction', autoFreq1: 'Every hour',
+      autoFreq6: 'Every 6 hours', autoFreq12: 'Every 12 hours', autoFreq24: 'Once a day',
+      autoBackupChooseBtn: 'Choose Drive File', autoBackupChangeBtn: 'Change File',
+      autoBackupNowBtn: 'Sync Now', autoBackupOffBtn: 'Turn Off',
+      autoStatusSynced: 'Last synced: {time}', autoStatusPending: 'Changes waiting to sync.',
+      autoStatusNever: 'Not synced yet.', autoStatusFailed: 'Last sync failed: {reason}',
+      autoErrPermission: 'the app lost access to the file. Choose it again.',
+      autoErrIo: 'could not write the file. Is Google Drive installed and signed in?',
+      autoErrNoTarget: 'no backup file chosen.',
+      autoErrNotPersistable: 'that location does not allow automatic backups. Pick a file in Google Drive.',
+      autoBackupOnToast: 'Automatic backup is on.', autoBackupOffToast: 'Automatic backup is off.',
+      autoBackupFailedToast: 'Automatic backup failed: {reason}', autoBackupSyncedToast: 'Backup synced.',
       dangerZone: 'Danger Zone',
       dangerZoneDesc: 'Wipe all transactions, rate history, archived days, reserve adjustments, and login activity. Reserves and rates reset to their starting defaults. Staff accounts are kept — use this to start using the app fresh.',
       resetAllDataBtn: 'Reset All Data', staffAccounts: 'Staff Accounts',
@@ -628,6 +663,21 @@
       restoreConfirmTitle: 'استعادة هذه النسخة الاحتياطية؟',
       restoreConfirmBody: 'نسخة احتياطية بتاريخ {time}: {txns} معاملة، {days} يوم مغلق، {users} حساب. سيتم استبدال كل البيانات الموجودة حاليًا في التطبيق. احفظ نسخة احتياطية من البيانات الحالية أولًا إذا كنت قد تحتاجها.',
       restoreConfirmBtn: 'استبدال واستعادة', backupRestoredToast: 'تمت استعادة النسخة الاحتياطية.',
+      autoBackupTitle: 'نسخ احتياطي تلقائي إلى Google Drive',
+      autoBackupDesc: 'اختر ملفًا في Google Drive مرة واحدة، وسيحدّثه التطبيق بأحدث بياناتك. يمكنك استعادته عبر "استعادة من نسخة احتياطية" على أي هاتف.',
+      autoBackupLocation: 'ملف النسخة الاحتياطية:', autoBackupNotSet: 'غير محدد (النسخ التلقائي متوقف)',
+      autoBackupWhen: 'توقيت النسخ', autoFreqChange: 'بعد كل معاملة', autoFreq1: 'كل ساعة',
+      autoFreq6: 'كل 6 ساعات', autoFreq12: 'كل 12 ساعة', autoFreq24: 'مرة يوميًا',
+      autoBackupChooseBtn: 'اختيار ملف في Drive', autoBackupChangeBtn: 'تغيير الملف',
+      autoBackupNowBtn: 'مزامنة الآن', autoBackupOffBtn: 'إيقاف',
+      autoStatusSynced: 'آخر مزامنة: {time}', autoStatusPending: 'توجد تغييرات بانتظار المزامنة.',
+      autoStatusNever: 'لم تتم المزامنة بعد.', autoStatusFailed: 'فشلت آخر مزامنة: {reason}',
+      autoErrPermission: 'فقد التطبيق صلاحية الوصول إلى الملف. اختره مرة أخرى.',
+      autoErrIo: 'تعذّر حفظ الملف. هل تطبيق Google Drive مثبّت ومسجّل الدخول؟',
+      autoErrNoTarget: 'لم يتم اختيار ملف للنسخ الاحتياطي.',
+      autoErrNotPersistable: 'هذا الموقع لا يدعم النسخ التلقائي. اختر ملفًا في Google Drive.',
+      autoBackupOnToast: 'تم تفعيل النسخ الاحتياطي التلقائي.', autoBackupOffToast: 'تم إيقاف النسخ الاحتياطي التلقائي.',
+      autoBackupFailedToast: 'فشل النسخ الاحتياطي التلقائي: {reason}', autoBackupSyncedToast: 'تمت مزامنة النسخة الاحتياطية.',
       dangerZone: 'منطقة الخطر',
       dangerZoneDesc: 'حذف جميع المعاملات وسجل الأسعار والأيام المؤرشفة وتعديلات الاحتياطي وسجل الدخول. تُعاد ضبط الاحتياطي والأسعار إلى قيمها الافتراضية. تبقى حسابات الموظفين كما هي — استخدم هذا لبدء استخدام التطبيق من جديد.',
       resetAllDataBtn: 'إعادة تعيين كل البيانات', staffAccounts: 'حسابات الموظفين',
@@ -781,7 +831,10 @@
     } catch (e) { return null; }
   }
 
-  function persist() { localStorage.setItem(DB_KEY, JSON.stringify(state)); }
+  function persist() {
+    localStorage.setItem(DB_KEY, JSON.stringify(state));
+    autoBackupOnChange();
+  }
 
   function loadSession() {
     try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY) || 'null'); }
@@ -1352,6 +1405,30 @@
     var last = null;
     try { last = localStorage.getItem(LAST_BACKUP_KEY); } catch (e) { }
     el.textContent = last ? t('lastBackupLabel', { time: fmtDateTime(last) }) : t('lastBackupNever');
+    renderAutoBackup();
+  }
+
+  function renderAutoBackup() {
+    var section = document.getElementById('auto-backup-section');
+    if (!section) return;
+    if (!autoBackupAvailable()) { section.classList.add('hidden'); return; }
+    section.classList.remove('hidden');
+    var target = autoBackupTarget();
+    var cfg = autoCfg();
+    document.getElementById('auto-backup-target').textContent = target
+      ? target.name + (target.provider ? ' · ' + target.provider : '')
+      : t('autoBackupNotSet');
+    document.getElementById('auto-backup-freq').value = cfg.freq;
+    document.getElementById('auto-backup-choose-btn').textContent = t(target ? 'autoBackupChangeBtn' : 'autoBackupChooseBtn');
+    document.getElementById('auto-backup-now-btn').classList.toggle('hidden', !target);
+    document.getElementById('auto-backup-off-btn').classList.toggle('hidden', !target);
+    var status = document.getElementById('auto-backup-status');
+    status.classList.toggle('text-rose-bright', !!(target && cfg.lastError));
+    if (!target) status.textContent = '';
+    else if (cfg.lastError) status.textContent = t('autoStatusFailed', { reason: autoErrText(cfg.lastError) });
+    else if (cfg.lastHash !== stateHash()) status.textContent = t('autoStatusPending');
+    else if (cfg.lastAt) status.textContent = t('autoStatusSynced', { time: fmtDateTime(cfg.lastAt) });
+    else status.textContent = t('autoStatusNever');
   }
 
   /* ================= render: all ================= */
@@ -1980,6 +2057,134 @@
     if (file) handleRestoreFile(file);
   });
 
+  /* ================= automatic backup (Android app only) ================= */
+  // The Android app lets the admin pick one file (normally in Google Drive) and
+  // exposes WZAndroid.autoBackupWrite to overwrite it; Drive uploads it. The data
+  // can only change while the app is open, so syncing from here loses nothing:
+  // "after every transaction" writes a few seconds after each change (and when
+  // the app goes to the background); the hourly/daily modes write when there
+  // are unsynced changes and the chosen time has passed since the last sync.
+  var autoTimer = null;
+  var autoInFlight = false;
+  var autoQueued = false;
+
+  function autoBackupAvailable() { return !!(window.WZAndroid && window.WZAndroid.autoBackupWrite); }
+
+  function autoBackupTarget() {
+    if (!autoBackupAvailable()) return null;
+    try { var raw = window.WZAndroid.autoBackupTarget(); return raw ? JSON.parse(raw) : null; }
+    catch (e) { return null; }
+  }
+
+  function autoCfg() {
+    var cfg = null;
+    try { cfg = JSON.parse(localStorage.getItem(AUTO_BACKUP_KEY) || 'null'); } catch (e) { }
+    cfg = cfg || {};
+    if (!cfg.freq) cfg.freq = 'change';
+    return cfg;
+  }
+
+  function saveAutoCfg(cfg) {
+    try { localStorage.setItem(AUTO_BACKUP_KEY, JSON.stringify(cfg)); } catch (e) { }
+  }
+
+  function stateHash() {
+    var str = JSON.stringify(state), h = 5381;
+    for (var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    return str.length + ':' + h;
+  }
+
+  function autoErrText(code) {
+    return t({ permission: 'autoErrPermission', no_target: 'autoErrNoTarget', not_persistable: 'autoErrNotPersistable' }[code] || 'autoErrIo');
+  }
+
+  function autoBackupOnChange() {
+    if (!autoBackupAvailable() || !autoBackupTarget()) return;
+    if (autoCfg().freq === 'change') {
+      clearTimeout(autoTimer);
+      autoTimer = setTimeout(function () { runAutoBackup(false); }, 3000);
+    }
+    if (session && activeView === 'admin') renderAutoBackup();
+  }
+
+  function autoBackupTick() {
+    if (!autoBackupAvailable() || !autoBackupTarget()) return;
+    var cfg = autoCfg();
+    if (cfg.lastHash === stateHash()) return;
+    if (cfg.freq === 'change') { runAutoBackup(false); return; }
+    var dueAt = (cfg.lastAt ? new Date(cfg.lastAt).getTime() : 0) + Number(cfg.freq) * 3600 * 1000;
+    if (Date.now() >= dueAt) runAutoBackup(false);
+  }
+
+  function runAutoBackup(manual) {
+    clearTimeout(autoTimer);
+    autoTimer = null;
+    if (!autoBackupAvailable() || !autoBackupTarget()) return;
+    if (autoInFlight) { autoQueued = true; return; }
+    autoInFlight = true;
+    var hash = stateHash();
+    var payload = { app: 'WZExchange', format: BACKUP_FORMAT, exportedAt: nowIso(),
+      exportedBy: session ? session.username : 'auto', automatic: true, data: state };
+    window.__wzAutoBackupDone = function (ok, error) {
+      autoInFlight = false;
+      var cfg = autoCfg();
+      var hadError = !!cfg.lastError;
+      if (ok) {
+        cfg.lastAt = payload.exportedAt;
+        cfg.lastHash = hash;
+        cfg.lastError = null;
+        if (manual) toast(t('autoBackupSyncedToast'));
+      } else {
+        cfg.lastError = error || 'io';
+        // One toast per failure streak, not one per transaction.
+        if (manual || !hadError) toast(t('autoBackupFailedToast', { reason: autoErrText(cfg.lastError) }), 'error');
+      }
+      saveAutoCfg(cfg);
+      if (session) renderAutoBackup();
+      if (autoQueued) { autoQueued = false; if (ok) autoBackupTick(); }
+    };
+    window.WZAndroid.autoBackupWrite(JSON.stringify(payload, null, 1));
+  }
+
+  window.__wzAutoBackupChosen = function (targetJson, error) {
+    if (!targetJson) {
+      if (error && error !== 'cancelled') toast(t('autoBackupFailedToast', { reason: autoErrText(error) }), 'error');
+      return;
+    }
+    var cfg = autoCfg();
+    cfg.lastError = null;
+    cfg.lastHash = null;
+    cfg.lastAt = null;
+    saveAutoCfg(cfg);
+    toast(t('autoBackupOnToast'));
+    runAutoBackup(false);
+    renderAutoBackup();
+  };
+
+  window.__wzOnPause = function () {
+    if (autoTimer) runAutoBackup(false);
+  };
+
+  function handleAutoBackupOff() {
+    if (!autoBackupAvailable()) return;
+    window.WZAndroid.autoBackupClear();
+    clearTimeout(autoTimer);
+    autoTimer = null;
+    var cfg = autoCfg();
+    saveAutoCfg({ freq: cfg.freq });
+    renderAutoBackup();
+    toast(t('autoBackupOffToast'));
+  }
+
+  document.addEventListener('change', function (e) {
+    if (e.target.id !== 'auto-backup-freq') return;
+    var cfg = autoCfg();
+    cfg.freq = e.target.value;
+    saveAutoCfg(cfg);
+    autoBackupTick();
+    renderAutoBackup();
+  });
+
   /* ================= event delegation ================= */
   document.addEventListener('submit', function (e) {
     var form = e.target.closest('form[data-form]');
@@ -2014,6 +2219,9 @@
     else if (action === 'restore-backup') document.getElementById('restore-file-input').click();
     else if (action === 'export-txns-csv') handleExportTxnsCsv();
     else if (action === 'export-days-csv') handleExportDaysCsv();
+    else if (action === 'auto-backup-choose') window.WZAndroid.autoBackupChoose('wzexchange-autobackup.json');
+    else if (action === 'auto-backup-now') runAutoBackup(true);
+    else if (action === 'auto-backup-off') handleAutoBackupOff();
     else if (action === 'set-lang') setLang(btn.dataset.lang);
   });
 
@@ -2032,6 +2240,8 @@
     session = loadSession();
     tickClock();
     setInterval(tickClock, 1000);
+    autoBackupTick();
+    setInterval(autoBackupTick, 60 * 1000);
 
     if (session && state.users.some(function (u) { return u.id === session.userId; })) {
       showApp();
