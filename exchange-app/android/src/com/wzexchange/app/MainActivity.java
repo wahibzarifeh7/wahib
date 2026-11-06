@@ -2,13 +2,16 @@ package com.wzexchange.app;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.content.pm.ProviderInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
+import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -46,6 +49,10 @@ import org.json.JSONObject;
 //   through the system "save to" picker; the app keeps a persistable write grant
 //   for it and the page rewrites it through autoBackupWrite. The Drive app does
 //   the upload, so no Google sign-in or API key is involved here.
+//
+//   Bill serial scanner: the page uses getUserMedia; camera requests from the
+//   page are granted here once Android's CAMERA permission is (asked for and)
+//   given. Only the offline build declares that permission.
 public class MainActivity extends Activity {
     static final String ONLINE_URL = "https://wzexchange.netlify.app/";
     static final String ONLINE_HOST = "wzexchange.netlify.app";
@@ -57,6 +64,7 @@ public class MainActivity extends Activity {
     static final int REQUEST_OPEN_FILE = 2;
     static final int REQUEST_AUTO_TARGET = 3;
     static final String PREFS = "autobackup";
+    static final int REQUEST_CAMERA_PERMISSION = 10;
 
     private WebView web;
     private boolean offlineBuild;
@@ -64,6 +72,7 @@ public class MainActivity extends Activity {
     private String appUrl;
     private String pendingSaveText;
     private ValueCallback<Uri[]> pendingFileChooser;
+    private PermissionRequest pendingCameraRequest;
     private final ExecutorService backupWriter = Executors.newSingleThreadExecutor();
 
     @Override
@@ -83,8 +92,28 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        s.setMediaPlaybackRequiresUserGesture(false); // camera preview autoplays
 
         web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(PermissionRequest request) {
+                boolean wantsCamera = false;
+                for (String r : request.getResources()) {
+                    if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)) wantsCamera = true;
+                }
+                if (!offlineBuild || !wantsCamera || !LOCAL_HOST.equals(request.getOrigin().getHost())) {
+                    request.deny();
+                    return;
+                }
+                if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    request.grant(new String[] { PermissionRequest.RESOURCE_VIDEO_CAPTURE });
+                } else {
+                    if (pendingCameraRequest != null) pendingCameraRequest.deny();
+                    pendingCameraRequest = request;
+                    requestPermissions(new String[] { Manifest.permission.CAMERA }, REQUEST_CAMERA_PERMISSION);
+                }
+            }
+
             @Override
             public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback,
                                              FileChooserParams params) {
@@ -292,6 +321,17 @@ public class MainActivity extends Activity {
             else js.append(JSONObject.quote(a.toString()));
         }
         web.evaluateJavascript(js.append(")").toString(), null);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        if (requestCode != REQUEST_CAMERA_PERMISSION || pendingCameraRequest == null) return;
+        if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) {
+            pendingCameraRequest.grant(new String[] { PermissionRequest.RESOURCE_VIDEO_CAPTURE });
+        } else {
+            pendingCameraRequest.deny();
+        }
+        pendingCameraRequest = null;
     }
 
     @Override

@@ -212,6 +212,7 @@
       </div>
       <nav id="tab-nav" class="hidden md:flex items-center gap-6 text-sm font-medium">
         <button class="tab-btn active px-1 py-5" data-action="nav" data-view="dashboard" data-i18n="navDashboard">Dashboard</button>
+        <button class="tab-btn px-1 py-5" data-action="nav" data-view="search" data-i18n="navSearch">Search</button>
         <button class="tab-btn px-1 py-5" data-action="nav" data-view="history" data-i18n="navRateHistory">Rate History</button>
         <button class="tab-btn px-1 py-5" data-action="nav" data-view="dayclose" data-admin-only="1" data-i18n="navDayClose">Day Close</button>
         <button class="tab-btn px-1 py-5" data-action="nav" data-view="admin" data-admin-only="1" data-i18n="navAdmin">Admin</button>
@@ -230,6 +231,7 @@
     </div>
     <nav id="tab-nav-mobile" class="md:hidden flex items-center gap-4 text-xs font-medium px-4 overflow-x-auto border-t border-ink-800">
       <button class="tab-btn active px-1 py-3 whitespace-nowrap" data-action="nav" data-view="dashboard" data-i18n="navDashboard">Dashboard</button>
+      <button class="tab-btn px-1 py-3 whitespace-nowrap" data-action="nav" data-view="search" data-i18n="navSearch">Search</button>
       <button class="tab-btn px-1 py-3 whitespace-nowrap" data-action="nav" data-view="history" data-i18n="navRateHistory">Rate History</button>
       <button class="tab-btn px-1 py-3 whitespace-nowrap" data-action="nav" data-view="dayclose" data-admin-only="1" data-i18n="navDayClose">Day Close</button>
       <button class="tab-btn px-1 py-3 whitespace-nowrap" data-action="nav" data-view="admin" data-admin-only="1" data-i18n="navAdmin">Admin</button>
@@ -270,6 +272,25 @@
       </div>
     </section>
 
+    <!-- ---- SEARCH ---- -->
+    <section id="view-search" class="hidden">
+      <div class="panel rounded-xl p-5">
+        <h2 class="font-display text-lg mb-1" data-i18n="searchTitle">Search Transactions</h2>
+        <p class="text-xs text-paper-dim mb-4 leading-relaxed" data-i18n="searchDesc">Find every transaction whose note contains a bill serial (or part of one) or a customer name, across today and all archived days.</p>
+        <input id="search-input" type="search" autocomplete="off" class="field-input w-full rounded-lg px-3 py-2.5 text-sm mb-4" placeholder="e.g. MB1234 or Ahmad" data-i18n-placeholder="searchPlaceholder" />
+        <div id="search-summary" class="hidden grid grid-cols-3 gap-3 mb-4"></div>
+        <div id="search-results-wrap" class="hidden overflow-x-auto -mx-5 px-5">
+          <table class="ledger">
+            <thead>
+              <tr><th data-i18n="colDate">Date</th><th data-i18n="colNote">Note</th><th data-i18n="colType">Type</th><th class="num" data-i18n="colUsd">USD</th><th class="num" data-i18n="colRate">Rate</th><th class="num" data-i18n="colSyp">SYP</th><th data-i18n="colOperator">Operator</th><th data-i18n="colDay">Day</th></tr>
+            </thead>
+            <tbody id="search-results-body"></tbody>
+          </table>
+        </div>
+        <div id="search-empty" class="hidden text-center text-sm text-paper-dim py-10"></div>
+      </div>
+    </section>
+
     <!-- ---- RATE HISTORY ---- -->
     <section id="view-history" class="hidden">
       <div class="panel rounded-xl p-5">
@@ -297,7 +318,7 @@
         <div class="overflow-x-auto">
           <table class="ledger">
             <thead>
-              <tr><th data-i18n="colClosed">Closed</th><th class="num" data-i18n="colOpenUsd">Open USD</th><th class="num" data-i18n="colOpenSyp">Open SYP</th><th class="num" data-i18n="colCloseUsd">Close USD</th><th class="num" data-i18n="colCloseSyp">Close SYP</th><th class="num" data-i18n="colBuyVol">Buy Vol.</th><th class="num" data-i18n="colSellVol">Sell Vol.</th><th class="num" data-i18n="colTrades">Trades</th><th class="num" data-i18n="colProfit">Profit (£S)</th><th data-i18n="colClosedBy">Closed By</th></tr>
+              <tr><th data-i18n="colClosed">Closed</th><th class="num" data-i18n="colOpenUsd">Open USD</th><th class="num" data-i18n="colOpenSyp">Open SYP</th><th class="num" data-i18n="colCloseUsd">Close USD</th><th class="num" data-i18n="colCloseSyp">Close SYP</th><th class="num" data-i18n="colBuyVol">Buy Vol.</th><th class="num" data-i18n="colSellVol">Sell Vol.</th><th class="num" data-i18n="colTrades">Trades</th><th class="num" data-i18n="colProfit">Profit (£S)</th><th data-i18n="colClosedBy">Closed By</th><th></th></tr>
             </thead>
             <tbody id="dayhistory-table-body"></tbody>
           </table>
@@ -424,6 +445,23 @@
       signIn: 'Sign In',
       loginError: 'Incorrect username or password.',
       navDashboard: 'Dashboard', navRateHistory: 'Rate History', navDayClose: 'Day Close', navAdmin: 'Admin',
+      navSearch: 'Search', searchTitle: 'Search Transactions',
+      searchDesc: 'Find every transaction whose note contains a bill serial (or part of one) or a customer name, across today and all archived days.',
+      searchPlaceholder: 'e.g. MB1234 or Ahmad', searchHint: 'Type at least 2 characters.',
+      searchNoResults: 'No transactions match "{q}".', searchShowingFirst: 'Showing the newest {shown} of {total}.',
+      searchMatches: 'Matches', searchBought: 'Bought (USD)', searchSold: 'Sold (USD)',
+      colDate: 'Date', colDay: 'Day', dayToday: 'Today (open)', dayClosedOn: 'Closed {time}',
+      viewDayBtn: 'View', dayDetailTitle: 'Day closed {time}',
+      dayDetailRange: '{from} → {to} · closed by {name}', dayDetailNoTxns: 'No transactions on this day.',
+      dayDetailAdjustments: 'Reserve adjustments', closeBtn: 'Close',
+      scanSerialBtn: 'Scan bill serial', scanTitle: 'Scan Bill Serial',
+      scanHint: 'Fill the box with the serial number (e.g. MB 12345678 C). Hold steady, good light.',
+      scanCapture: 'Capture', scanReading: 'Reading…', scanLoading: 'Loading text reader…',
+      scanNoMatch: 'Could not read a serial. Edit it below or try again.',
+      scanCheck: 'Check it matches the bill, then add it.', scanAdd: 'Add to Note', scanRetake: 'Retake',
+      scanDone: 'Done', scanTorch: 'Light', scanAddedList: 'Added: {list}',
+      scanCameraError: 'Cannot open the camera. Allow camera access for this app and try again.',
+      scanAddedToast: 'Added {serial} to the note.',
       signOut: 'Sign Out', roleAdmin: 'admin', roleStaff: 'staff',
       rateBoardTitle: 'USD ⇆ SYP Rate Board',
       lastUpdatedBy: 'Last updated {time} by {name}',
@@ -572,6 +610,23 @@
       signIn: 'تسجيل الدخول',
       loginError: 'اسم المستخدم أو كلمة المرور غير صحيحة.',
       navDashboard: 'لوحة التحكم', navRateHistory: 'سجل الأسعار', navDayClose: 'إغلاق اليوم', navAdmin: 'الإدارة',
+      navSearch: 'بحث', searchTitle: 'البحث في المعاملات',
+      searchDesc: 'اعثر على كل معاملة تحتوي ملاحظتها على رقم تسلسلي لورقة نقدية (أو جزء منه) أو اسم زبون، في اليوم الحالي وجميع الأيام المؤرشفة.',
+      searchPlaceholder: 'مثال: MB1234 أو أحمد', searchHint: 'اكتب حرفين على الأقل.',
+      searchNoResults: 'لا توجد معاملات تطابق "{q}".', searchShowingFirst: 'عرض أحدث {shown} من أصل {total}.',
+      searchMatches: 'النتائج', searchBought: 'شراء (دولار)', searchSold: 'بيع (دولار)',
+      colDate: 'التاريخ', colDay: 'اليوم', dayToday: 'اليوم (مفتوح)', dayClosedOn: 'أُغلق {time}',
+      viewDayBtn: 'عرض', dayDetailTitle: 'يوم أُغلق في {time}',
+      dayDetailRange: '{from} ← {to} · أغلقه {name}', dayDetailNoTxns: 'لا توجد معاملات في هذا اليوم.',
+      dayDetailAdjustments: 'تعديلات الاحتياطي', closeBtn: 'إغلاق',
+      scanSerialBtn: 'مسح الرقم التسلسلي', scanTitle: 'مسح الرقم التسلسلي للورقة',
+      scanHint: 'ضع الرقم التسلسلي داخل الإطار (مثال: MB 12345678 C). ثبّت الهاتف واستخدم إضاءة جيدة.',
+      scanCapture: 'التقاط', scanReading: 'جارٍ القراءة…', scanLoading: 'جارٍ تحميل قارئ النصوص…',
+      scanNoMatch: 'تعذّرت قراءة رقم تسلسلي. عدّله أدناه أو حاول مجددًا.',
+      scanCheck: 'تأكد من مطابقته للورقة ثم أضفه.', scanAdd: 'إضافة إلى الملاحظة', scanRetake: 'إعادة الالتقاط',
+      scanDone: 'تم', scanTorch: 'الإضاءة', scanAddedList: 'تمت الإضافة: {list}',
+      scanCameraError: 'تعذّر فتح الكاميرا. اسمح للتطبيق باستخدام الكاميرا ثم حاول مجددًا.',
+      scanAddedToast: 'تمت إضافة {serial} إلى الملاحظة.',
       signOut: 'تسجيل الخروج', roleAdmin: 'مسؤول', roleStaff: 'موظف',
       rateBoardTitle: 'لوحة أسعار الدولار ⇆ الليرة',
       lastUpdatedBy: 'آخر تحديث {time} بواسطة {name}',
@@ -983,11 +1038,12 @@
   }
 
   function setActiveView(view) {
+    if (view === 'search') setTimeout(function () { renderSearch(); }, 0);
     if (view === 'admin' || view === 'dayclose') {
       if (session.role !== 'admin') view = 'dashboard';
     }
     activeView = view;
-    ['dashboard', 'history', 'dayclose', 'admin'].forEach(function (v) {
+    ['dashboard', 'search', 'history', 'dayclose', 'admin'].forEach(function (v) {
       document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
     });
     document.querySelectorAll('.tab-btn').forEach(function (btn) {
@@ -1104,7 +1160,10 @@
           '<label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('amountUsdLabel')) + '</label>' +
           '<input id="txn-amount" name="amount" type="number" min="0" step="0.01" required placeholder="0.00" dir="ltr" class="field-input w-full rounded-lg px-3 py-2.5 text-sm font-mono mb-3" />' +
           '<label class="block text-xs font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('noteOptionalLabel')) + '</label>' +
-          '<input id="txn-note" name="note" type="text" maxlength="60" placeholder="' + esc(t('notePlaceholder')) + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm mb-4" />' +
+          '<div class="flex gap-2 mb-4">' +
+            '<input id="txn-note" name="note" type="text" maxlength="500" placeholder="' + esc(t('notePlaceholder')) + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />' +
+            (scannerAvailable() ? '<button type="button" data-action="scan-serial" data-target="txn-note" class="btn btn-ghost rounded-lg px-3 text-sm shrink-0" title="' + esc(t('scanSerialBtn')) + '" aria-label="' + esc(t('scanSerialBtn')) + '">' + CAMERA_ICON + '</button>' : '') +
+          '</div>' +
           '<div class="panel-raised rounded-lg px-4 py-3 mb-3 flex items-center justify-between">' +
             '<span class="text-xs text-paper-dim">' + esc(txnType === 'buy' ? t('payCustomer') : t('customerPays')) + '</span>' +
             '<span id="txn-computed" class="font-mono text-lg font-tabular ' + (txnType === 'buy' ? 'text-brass-bright' : 'text-teal-bright') + '" dir="ltr">£S 0</span>' +
@@ -1360,6 +1419,7 @@
           '<td class="num">' + d.txnCount + '</td>' +
           '<td class="num ' + (d.profit >= 0 ? 'text-teal-bright' : 'text-rose-bright') + '">' + fmtSypSigned(d.profit) + '</td>' +
           '<td>' + esc(d.closedBy) + '</td>' +
+          '<td><button class="btn btn-ghost rounded px-2.5 py-1 text-[11px]" data-action="view-day" data-id="' + d.id + '">' + esc(t('viewDayBtn')) + '</button></td>' +
         '</tr>'
       );
     }).join('');
@@ -1444,6 +1504,7 @@
     renderDayHistoryTable();
     renderAdmin();
     renderBackupInfo();
+    if (activeView === 'search') renderSearch();
     document.getElementById('footer-day-started').textContent = t('dayStartedFooter', { time: fmtDateTime(state.dayStart.startedAt) });
   }
 
@@ -1639,7 +1700,10 @@
               '</div>' +
               '<div>' +
                 '<label class="block text-[11px] font-semibold uppercase tracking-wide text-paper-dim mb-1.5">' + esc(t('noteLabel')) + '</label>' +
-                '<input name="note" type="text" maxlength="60" value="' + esc(t2.note || '') + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />' +
+                '<div class="flex gap-2">' +
+                  '<input id="edit-txn-note" name="note" type="text" maxlength="500" value="' + esc(t2.note || '') + '" class="field-input w-full rounded-lg px-3 py-2.5 text-sm" />' +
+                  (scannerAvailable() ? '<button type="button" data-action="scan-serial" data-target="edit-txn-note" class="btn btn-ghost rounded-lg px-3 text-sm shrink-0" aria-label="' + esc(t('scanSerialBtn')) + '">' + CAMERA_ICON + '</button>' : '') +
+                '</div>' +
               '</div>' +
               '<div id="edit-txn-error" class="hidden text-rose-bright text-xs bg-rose/10 border border-rose/30 rounded-lg px-3 py-2"></div>' +
               '<div class="flex justify-end gap-2 pt-1">' +
@@ -2185,6 +2249,372 @@
     renderAutoBackup();
   });
 
+  /* ================= search ================= */
+  // Matches the query against each transaction's note, case-insensitively and
+  // ignoring spaces/dashes, so "mb 1234" finds "MB12345678C" and a partial
+  // serial or customer name finds every trade it appears in.
+  function searchKey(s) { return String(s || '').toUpperCase().replace(/[\s\-_.,:;\/]+/g, ''); }
+
+  function dayLabelFor(at) {
+    if (at >= state.dayStart.startedAt) return t('dayToday');
+    for (var i = 0; i < state.dayHistory.length; i++) {
+      var d = state.dayHistory[i];
+      if (at >= d.openedAt && at < d.closedAt) return t('dayClosedOn', { time: fmtDateTime(d.closedAt) });
+    }
+    return '';
+  }
+
+  function highlightNote(note, q) {
+    var text = String(note || '');
+    var i = q ? text.toLowerCase().indexOf(q.toLowerCase()) : -1;
+    if (i < 0) return esc(text);
+    return esc(text.slice(0, i)) + '<mark class="bg-brass/30 text-paper rounded px-0.5">' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+  }
+
+  var searchTimer = null;
+  function renderSearch() {
+    var input = document.getElementById('search-input');
+    if (!input) return;
+    var q = input.value.trim();
+    var key = searchKey(q);
+    var wrap = document.getElementById('search-results-wrap');
+    var empty = document.getElementById('search-empty');
+    var summary = document.getElementById('search-summary');
+    if (key.length < 2) {
+      wrap.classList.add('hidden'); summary.classList.add('hidden');
+      empty.textContent = t('searchHint'); empty.classList.remove('hidden');
+      return;
+    }
+    var matches = state.transactions.filter(function (x) { return x.note && searchKey(x.note).indexOf(key) >= 0; })
+      .sort(function (a, b) { return a.at < b.at ? 1 : -1; });
+    if (!matches.length) {
+      wrap.classList.add('hidden'); summary.classList.add('hidden');
+      empty.textContent = t('searchNoResults', { q: q }); empty.classList.remove('hidden');
+      return;
+    }
+    var bought = 0, sold = 0;
+    matches.forEach(function (x) { if (x.type === 'buy') bought += x.amountUsd; else sold += x.amountUsd; });
+    function tile(label, value, tone) {
+      return '<div class="panel-raised rounded-lg px-3 py-2"><div class="text-[10px] uppercase tracking-wide text-paper-dim">' + esc(label) + '</div><div class="font-mono text-sm ' + (tone || '') + '" dir="ltr">' + value + '</div></div>';
+    }
+    summary.innerHTML = tile(t('searchMatches'), String(matches.length)) + tile(t('searchBought'), fmtUsd(bought), 'text-brass-bright') + tile(t('searchSold'), fmtUsd(sold), 'text-teal-bright');
+    summary.classList.remove('hidden');
+    var shown = matches.slice(0, 300);
+    document.getElementById('search-results-body').innerHTML = shown.map(function (x) {
+      return '<tr>' +
+        '<td dir="ltr">' + fmtDateTime(x.at) + '</td>' +
+        '<td style="white-space:normal;min-width:170px">' + highlightNote(x.note, q) + '</td>' +
+        '<td><span class="badge ' + (x.type === 'buy' ? 'badge-buy' : 'badge-sell') + '">' + esc(x.type === 'buy' ? t('typeBuy') : t('typeSell')) + '</span></td>' +
+        '<td class="num text-brass-bright">' + fmtUsd(x.amountUsd) + '</td>' +
+        '<td class="num">' + fmtRate(x.rateApplied) + '</td>' +
+        '<td class="num text-teal-bright">' + fmtSyp(x.amountSyp) + '</td>' +
+        '<td>' + esc(x.operator) + '</td>' +
+        '<td class="text-paper-dim text-xs">' + esc(dayLabelFor(x.at)) + '</td>' +
+      '</tr>';
+    }).join('');
+    wrap.classList.remove('hidden');
+    if (matches.length > shown.length) {
+      empty.textContent = t('searchShowingFirst', { shown: shown.length, total: matches.length });
+      empty.classList.remove('hidden');
+    } else {
+      empty.classList.add('hidden');
+    }
+  }
+
+  document.addEventListener('input', function (e) {
+    if (e.target.id !== 'search-input') return;
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(renderSearch, 150);
+  });
+
+  /* ================= archived day detail ================= */
+  function openDayDetail(dayId) {
+    var d = state.dayHistory.find(function (x) { return x.id === dayId; });
+    if (!d) return;
+    var txns = state.transactions.filter(function (x) { return x.at >= d.openedAt && x.at < d.closedAt; })
+      .sort(function (a, b) { return a.at < b.at ? -1 : 1; });
+    var adjs = state.adjustments.filter(function (a) { return a.at >= d.openedAt && a.at < d.closedAt; });
+    var rows = txns.map(function (x) {
+      return '<tr>' +
+        '<td dir="ltr">' + fmtTime(x.at) + '</td>' +
+        '<td><span class="badge ' + (x.type === 'buy' ? 'badge-buy' : 'badge-sell') + '">' + esc(x.type === 'buy' ? t('typeBuy') : t('typeSell')) + '</span></td>' +
+        '<td class="num text-brass-bright">' + fmtUsd(x.amountUsd) + '</td>' +
+        '<td style="white-space:normal;min-width:160px">' + (x.note ? esc(x.note) : '&mdash;') + '</td>' +
+        '<td class="num">' + fmtRate(x.rateApplied) + '</td>' +
+        '<td class="num text-teal-bright">' + fmtSyp(x.amountSyp) + (x.varianceSyp ? ' <span class="text-rose-bright text-[11px]">(' + fmtSypSigned(x.varianceSyp) + ')</span>' : '') + '</td>' +
+        '<td class="num">' + fmtUsd(x.usdAfter) + '</td>' +
+        '<td class="num">' + fmtSyp(x.sypAfter) + '</td>' +
+        '<td>' + esc(x.operator) + '</td>' +
+      '</tr>';
+    }).join('');
+    var adjHtml = adjs.length ? '<h4 class="text-xs font-semibold uppercase tracking-wide text-paper-dim mt-5 mb-2">' + esc(t('dayDetailAdjustments')) + '</h4>' +
+      adjs.map(function (a) {
+        var amt = a.currency === 'usd' ? fmtUsd(a.amount) : fmtSyp(a.amount);
+        return '<div class="flex items-center justify-between text-xs border-b border-ink-800 py-1.5 gap-3"><span dir="ltr" class="text-paper-dim">' + fmtTime(a.at) + '</span><span class="font-mono ' + (a.direction === 'add' ? 'text-teal-bright' : 'text-rose-bright') + '" dir="ltr">' + (a.direction === 'add' ? '+' : '−') + amt + '</span><span class="flex-1 truncate">' + esc(a.reason || '') + '</span><span class="text-paper-dim">' + esc(a.by) + '</span></div>';
+      }).join('') : '';
+    var root = document.getElementById('modal-root');
+    root.innerHTML =
+      '<div class="modal-backdrop" data-action="modal-backdrop">' +
+        '<div class="modal-card panel-raised rounded-xl p-5 w-full max-w-5xl max-h-[88vh] overflow-y-auto" role="dialog" aria-modal="true">' +
+          '<div class="flex items-start justify-between gap-3 mb-1">' +
+            '<h3 class="font-display text-lg">' + esc(t('dayDetailTitle', { time: fmtDateTime(d.closedAt) })) + '</h3>' +
+            '<button class="btn btn-ghost rounded-lg px-3 py-1.5 text-xs shrink-0" data-action="modal-cancel">' + esc(t('closeBtn')) + '</button>' +
+          '</div>' +
+          '<p class="text-xs text-paper-dim mb-4" dir="auto">' + esc(t('dayDetailRange', { from: fmtDateTime(d.openedAt), to: fmtDateTime(d.closedAt), name: d.closedBy })) + '</p>' +
+          '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-xs">' +
+            '<div class="panel rounded-lg px-3 py-2"><div class="text-paper-dim">' + esc(t('colTrades')) + '</div><div class="font-mono text-sm">' + d.txnCount + '</div></div>' +
+            '<div class="panel rounded-lg px-3 py-2"><div class="text-paper-dim">' + esc(t('colBuyVol')) + '</div><div class="font-mono text-sm text-brass-bright" dir="ltr">' + fmtUsd(d.buyVolumeUsd) + '</div></div>' +
+            '<div class="panel rounded-lg px-3 py-2"><div class="text-paper-dim">' + esc(t('colSellVol')) + '</div><div class="font-mono text-sm text-teal-bright" dir="ltr">' + fmtUsd(d.sellVolumeUsd) + '</div></div>' +
+            '<div class="panel rounded-lg px-3 py-2"><div class="text-paper-dim">' + esc(t('colProfit')) + '</div><div class="font-mono text-sm ' + (d.profit >= 0 ? 'text-teal-bright' : 'text-rose-bright') + '" dir="ltr">' + fmtSypSigned(d.profit) + '</div></div>' +
+          '</div>' +
+          (txns.length ? '<div class="overflow-x-auto"><table class="ledger"><thead><tr>' +
+            '<th>' + esc(t('colTime')) + '</th><th>' + esc(t('colType')) + '</th><th class="num">' + esc(t('colUsd')) + '</th><th>' + esc(t('colNote')) + '</th><th class="num">' + esc(t('colRate')) + '</th><th class="num">' + esc(t('colSyp')) + '</th><th class="num">' + esc(t('colUsdBal')) + '</th><th class="num">' + esc(t('colSypBal')) + '</th><th>' + esc(t('colOperator')) + '</th>' +
+            '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+            : '<p class="text-sm text-paper-dim py-6 text-center">' + esc(t('dayDetailNoTxns')) + '</p>') +
+          adjHtml +
+        '</div>' +
+      '</div>';
+    root.querySelector('[data-action="modal-cancel"]').addEventListener('click', closeModal);
+    root.querySelector('[data-action="modal-backdrop"]').addEventListener('click', function (e) { if (e.target === e.currentTarget) closeModal(); });
+  }
+
+  /* ================= bill serial scanner ================= */
+  // Camera + on-device OCR (Tesseract, bundled by the Android build under
+  // window.WZ_OCR_BASE). Builds without those files (web, desktop) hide the button.
+  var CAMERA_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.7"/></svg>';
+  var ocrWorkerPromise = null;
+
+  function scannerAvailable() {
+    return !!(window.WZ_OCR_BASE && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  }
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var el = document.createElement('script');
+      el.src = src; el.onload = resolve; el.onerror = reject;
+      document.head.appendChild(el);
+    });
+  }
+
+  // Every OCR file is fetched here on the page and handed to the worker as a
+  // blob/bytes, so nothing depends on requests made from inside the worker.
+  function getOcrWorker() {
+    if (ocrWorkerPromise) return ocrWorkerPromise;
+    var base = window.WZ_OCR_BASE;
+    function blobUrl(file, type) {
+      return fetch(base + file).then(function (r) { if (!r.ok) throw new Error(file); return r.blob(); })
+        .then(function (b) { return URL.createObjectURL(new Blob([b], { type: type })); });
+    }
+    ocrWorkerPromise = Promise.all([
+      window.Tesseract ? null : loadScript(base + 'tesseract.min.js'),
+      blobUrl('worker.min.js', 'application/javascript'),
+      blobUrl('tesseract-core-lstm.wasm.js', 'application/javascript'),
+      fetch(base + 'eng.traineddata.gz').then(function (r) { return r.arrayBuffer(); }),
+    ]).then(function (parts) {
+      return window.Tesseract.createWorker([{ code: 'eng', data: new Uint8Array(parts[3]) }], 1, {
+        workerPath: parts[1], workerBlobURL: false,
+        corePath: parts[2] + '#core.js', // getCore() only uses a path as-is when it ends in "js"
+        cacheMethod: 'none',
+      });
+    }).then(function (worker) {
+      return worker.setParameters({
+        tessedit_pageseg_mode: '7', // a single line of text
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+      }).then(function () { return worker; });
+    });
+    ocrWorkerPromise.catch(function () { ocrWorkerPromise = null; });
+    return ocrWorkerPromise;
+  }
+
+  // US serials: 2 letters + 8 digits + 1 letter (series 1996+), or 1 letter +
+  // 8 digits + 1 letter (older). Star notes end in a star, which OCR drops.
+  // Characters OCR commonly confuses are swapped based on where they sit.
+  var TO_DIGIT = { O: '0', Q: '0', D: '0', U: '0', I: '1', L: '1', T: '7', Z: '2', S: '5', B: '8', G: '6', A: '4' };
+  var TO_LETTER = { '0': 'O', '1': 'I', '2': 'Z', '4': 'A', '5': 'S', '6': 'G', '7': 'T', '8': 'B' };
+  function parseSerial(raw) {
+    var s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    var shapes = ['LLDDDDDDDDL', 'LDDDDDDDDL', 'LLDDDDDDDD'];
+    var best = null;
+    shapes.forEach(function (shape, shapeIdx) {
+      for (var i = 0; i + shape.length <= s.length; i++) {
+        var out = '', fixes = 0, ok = true;
+        for (var j = 0; j < shape.length && ok; j++) {
+          var c = s[i + j], want = shape[j];
+          var isDigit = c >= '0' && c <= '9';
+          if (want === 'D' && !isDigit) { if (TO_DIGIT[c]) { c = TO_DIGIT[c]; fixes++; } else ok = false; }
+          else if (want === 'L' && isDigit) { if (TO_LETTER[c]) { c = TO_LETTER[c]; fixes++; } else ok = false; }
+          out += c;
+        }
+        if (!ok) continue;
+        // The old one-letter format is rare and too easy to fake from a misread
+        // modern serial (e.g. "MB" + a lost digit), so it must read cleanly.
+        if (shapeIdx === 1 && fixes) continue;
+        var score = fixes * 10 + [0, 8, 9][shapeIdx];
+        // Second letter of a modern serial is the Federal Reserve Bank, A–L.
+        if (shapeIdx === 0 && out[1] > 'L') score += 3;
+        if (!best || score < best.score) best = { serial: out, score: score };
+      }
+    });
+    return best && best.score < 40 ? best.serial : null;
+  }
+
+  function openSerialScanner(targetId) {
+    var addedThisTime = [];
+    var stream = null;
+    var holder = document.createElement('div');
+    holder.id = 'scanner-root';
+    document.body.appendChild(holder);
+    holder.innerHTML =
+      '<div class="modal-backdrop" style="z-index:95">' +
+        '<div class="modal-card panel-raised rounded-xl p-4 w-full max-w-md" role="dialog" aria-modal="true">' +
+          '<div class="flex items-center justify-between mb-2">' +
+            '<h3 class="font-display text-lg">' + esc(t('scanTitle')) + '</h3>' +
+            '<button class="btn btn-ghost rounded-lg px-3 py-1.5 text-xs" data-scan="done">' + esc(t('scanDone')) + '</button>' +
+          '</div>' +
+          '<p class="text-xs text-paper-dim mb-3 leading-relaxed">' + esc(t('scanHint')) + '</p>' +
+          '<div id="scan-view" class="relative rounded-lg overflow-hidden bg-black" style="aspect-ratio:4/3">' +
+            '<video id="scan-video" autoplay playsinline muted class="absolute inset-0 w-full h-full" style="object-fit:cover"></video>' +
+            '<div id="scan-guide" class="absolute rounded-md" style="left:8%;width:84%;top:38%;height:24%;border:2px solid #D6A24C;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)"></div>' +
+            '<div id="scan-busy" class="hidden absolute inset-0 flex items-center justify-center text-sm bg-black/50"></div>' +
+          '</div>' +
+          '<div id="scan-result" class="hidden mt-3">' +
+            '<p id="scan-result-msg" class="text-xs mb-1.5"></p>' +
+            '<input id="scan-result-input" type="text" dir="ltr" autocomplete="off" class="field-input w-full rounded-lg px-3 py-2.5 text-base font-mono tracking-wider mb-2" />' +
+            '<div class="flex gap-2"><button class="btn btn-brass rounded-lg px-4 py-2.5 text-sm flex-1" data-scan="add">' + esc(t('scanAdd')) + '</button><button class="btn btn-ghost rounded-lg px-4 py-2.5 text-sm" data-scan="retake">' + esc(t('scanRetake')) + '</button></div>' +
+          '</div>' +
+          '<div id="scan-controls" class="flex gap-2 mt-3">' +
+            '<button class="btn btn-brass rounded-lg px-4 py-3 text-sm flex-1" data-scan="capture">' + esc(t('scanCapture')) + '</button>' +
+            '<button id="scan-torch" class="hidden btn btn-ghost rounded-lg px-4 py-3 text-sm" data-scan="torch">' + esc(t('scanTorch')) + '</button>' +
+          '</div>' +
+          '<p id="scan-added" class="hidden text-xs text-teal-bright mt-3 break-all" dir="ltr"></p>' +
+        '</div>' +
+      '</div>';
+    var $ = function (id) { return holder.querySelector('#' + id); };
+    var video = $('scan-video');
+    var torchOn = false;
+
+    function busy(msg) {
+      var el = $('scan-busy');
+      el.textContent = msg || '';
+      el.classList.toggle('hidden', !msg);
+    }
+    function stopCamera() {
+      if (stream) stream.getTracks().forEach(function (tr) { tr.stop(); });
+      stream = null;
+    }
+    function close() {
+      stopCamera();
+      holder.remove();
+    }
+    function showCapture() {
+      $('scan-result').classList.add('hidden');
+      $('scan-controls').classList.remove('hidden');
+      video.play && video.play().catch(function () { });
+    }
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1440 } }, audio: false })
+      .then(function (s) {
+        stream = s;
+        video.srcObject = s;
+        var track = s.getVideoTracks()[0];
+        var caps = track.getCapabilities ? track.getCapabilities() : {};
+        if (caps.torch) $('scan-torch').classList.remove('hidden');
+      })
+      .catch(function () {
+        close();
+        toast(t('scanCameraError'), 'error');
+      });
+    // Start loading the reader while the camera warms up.
+    getOcrWorker().catch(function () { });
+
+    // Crops the guide box out of the frame (accounting for object-fit: cover)
+    // and boosts it to grayscale at a size Tesseract reads well.
+    function grabGuide() {
+      var vw = video.videoWidth, vh = video.videoHeight;
+      var view = $('scan-view').getBoundingClientRect();
+      var g = $('scan-guide').getBoundingClientRect();
+      var scale = Math.max(view.width / vw, view.height / vh);
+      var ox = (view.width - vw * scale) / 2, oy = (view.height - vh * scale) / 2;
+      var sx = (g.left - view.left - ox) / scale, sy = (g.top - view.top - oy) / scale;
+      var sw = g.width / scale, sh = g.height / scale;
+      var outW = Math.min(1600, Math.max(800, Math.round(sw)));
+      var outH = Math.round(outW * sh / sw);
+      var c = document.createElement('canvas');
+      c.width = outW; c.height = outH;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, outW, outH);
+      var img = ctx.getImageData(0, 0, outW, outH), px = img.data, min = 255, max = 0, i, v;
+      for (i = 0; i < px.length; i += 4) {
+        v = 0.3 * px[i] + 0.59 * px[i + 1] + 0.11 * px[i + 2];
+        px[i] = v; if (v < min) min = v; if (v > max) max = v;
+      }
+      var range = Math.max(1, max - min);
+      for (i = 0; i < px.length; i += 4) {
+        v = (px[i] - min) * 255 / range;
+        px[i] = px[i + 1] = px[i + 2] = v;
+      }
+      ctx.putImageData(img, 0, 0);
+      return c;
+    }
+
+    function capture() {
+      if (!video.videoWidth) return;
+      var frame = grabGuide();
+      video.pause && video.pause();
+      busy(ocrWorkerPromise ? t('scanReading') : t('scanLoading'));
+      getOcrWorker()
+        .then(function (worker) { busy(t('scanReading')); return worker.recognize(frame); })
+        .then(function (res) {
+          busy('');
+          var raw = (res.data.text || '').trim();
+          var serial = parseSerial(raw);
+          var msg = $('scan-result-msg');
+          msg.textContent = serial ? t('scanCheck') : t('scanNoMatch');
+          msg.className = 'text-xs mb-1.5 ' + (serial ? 'text-paper-dim' : 'text-rose-bright');
+          $('scan-result-input').value = serial || raw.replace(/\s+/g, '');
+          $('scan-controls').classList.add('hidden');
+          $('scan-result').classList.remove('hidden');
+        })
+        .catch(function () {
+          busy('');
+          showCapture();
+          toast(t('scanNoMatch'), 'error');
+        });
+    }
+
+    function addSerial() {
+      var serial = $('scan-result-input').value.toUpperCase().replace(/[^A-Z0-9*]/g, '');
+      if (!serial) return;
+      var target = document.getElementById(targetId);
+      if (target) {
+        var cur = target.value.trim();
+        target.value = cur ? cur + ', ' + serial : serial;
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      addedThisTime.push(serial);
+      var added = $('scan-added');
+      added.textContent = t('scanAddedList', { list: addedThisTime.join(', ') });
+      added.classList.remove('hidden');
+      toast(t('scanAddedToast', { serial: serial }));
+      showCapture();
+    }
+
+    holder.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-scan]');
+      if (!b) return;
+      var what = b.dataset.scan;
+      if (what === 'done') close();
+      else if (what === 'capture') capture();
+      else if (what === 'retake') showCapture();
+      else if (what === 'add') addSerial();
+      else if (what === 'torch' && stream) {
+        torchOn = !torchOn;
+        stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: torchOn }] }).catch(function () { });
+      }
+    });
+    $('scan-result-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addSerial(); } });
+  }
+
   /* ================= event delegation ================= */
   document.addEventListener('submit', function (e) {
     var form = e.target.closest('form[data-form]');
@@ -2223,6 +2653,8 @@
     else if (action === 'auto-backup-now') runAutoBackup(true);
     else if (action === 'auto-backup-off') handleAutoBackupOff();
     else if (action === 'set-lang') setLang(btn.dataset.lang);
+    else if (action === 'view-day') openDayDetail(btn.dataset.id);
+    else if (action === 'scan-serial') openSerialScanner(btn.dataset.target);
   });
 
   /* ================= boot ================= */

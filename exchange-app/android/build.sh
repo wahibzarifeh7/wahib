@@ -28,6 +28,7 @@ rm -rf "$OUT"
 mkdir -p "$OUT/res" "$OUT/gen" "$OUT/classes"
 
 LINK_ARGS=()
+MANIFEST=AndroidManifest.xml
 case "$VARIANT" in
   online)
     APK=build/WZExchange.apk
@@ -39,6 +40,11 @@ case "$VARIANT" in
     node scripts/prepare-offline.js
     mkdir -p "$OUT/res-overlay"
     "$TOOLS/aapt2" compile --dir res-offline -o "$OUT/res-overlay/"
+    # Only the offline app scans bill serials, so only it asks for the camera.
+    MANIFEST="$OUT/AndroidManifest.xml"
+    sed 's#<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />#&\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />#' \
+      AndroidManifest.xml > "$MANIFEST"
+    grep -q 'permission.CAMERA' "$MANIFEST" || { echo "failed to add CAMERA permission" >&2; exit 1; }
     LINK_ARGS=(--rename-manifest-package com.wzexchange.offline
                -A build/offline-assets -R "$OUT"/res-overlay/*.flat)
     ;;
@@ -51,7 +57,7 @@ esac
 echo "== resources"
 "$TOOLS/aapt2" compile --dir res -o "$OUT/res/"
 "$TOOLS/aapt2" link -o "$OUT/unsigned.apk" -I "$PLATFORM" \
-  --manifest AndroidManifest.xml -A assets --java "$OUT/gen" \
+  --manifest "$MANIFEST" -A assets --java "$OUT/gen" \
   "$OUT"/res/*.flat "${LINK_ARGS[@]}"
 
 echo "== java"

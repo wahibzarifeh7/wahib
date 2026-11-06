@@ -2,7 +2,9 @@
 // offline source (desktop/app-source/index.html):
 //  - the Tailwind Play CDN script + inline config are replaced by tailwind.css,
 //    compiled from tailwind.config.js (keep the two themes in sync);
-//  - the Google Fonts link is replaced by fonts.css + woff2 files from @fontsource.
+//  - the Google Fonts link is replaced by fonts.css + woff2 files from @fontsource;
+//  - Tesseract (bill serial scanner) is copied to ocr/ and switched on via
+//    window.WZ_OCR_BASE, which the page checks before showing the camera button.
 // The result needs no network at all.
 const fs = require('fs');
 const path = require('path');
@@ -37,7 +39,25 @@ replaceOnce(/<script src="https:\/\/cdn\.tailwindcss\.com"><\/script>\s*<script>
 if (/https?:\/\/(?!www\.w3\.org)/.test(html.replace(/xmlns[^ >]*/g, ''))) {
   console.warn('prepare-offline: warning: page still references a remote URL');
 }
+replaceOnce(/<\/head>/, "<script>window.WZ_OCR_BASE = 'ocr/';</script>\n</head>", '</head>');
 fs.writeFileSync(path.join(out, 'index.html'), html);
+
+// --- OCR
+const ocr = path.join(out, 'ocr');
+fs.mkdirSync(ocr);
+const tessDist = path.join(path.dirname(require.resolve('tesseract.js/package.json')), 'dist');
+const tessCore = path.dirname(require.resolve('tesseract.js-core/package.json'));
+const engData = path.dirname(require.resolve('@tesseract.js-data/eng/package.json'));
+fs.copyFileSync(path.join(tessDist, 'tesseract.min.js'), path.join(ocr, 'tesseract.min.js'));
+fs.copyFileSync(path.join(tessCore, 'tesseract-core-lstm.wasm.js'), path.join(ocr, 'tesseract-core-lstm.wasm.js'));
+fs.copyFileSync(path.join(engData, '4.0.0_best_int', 'eng.traineddata.gz'), path.join(ocr, 'eng.traineddata.gz'));
+// tesseract.js 5.1.1 bug: initialize() joins in-memory languages by `.data`
+// (the bytes) instead of `.code`, so passing traineddata directly breaks.
+// The page passes it directly to avoid any fetches from inside the worker.
+const workerSrc = fs.readFileSync(path.join(tessDist, 'worker.min.js'), 'utf8');
+const buggy = 'return"string"==typeof t?t:t.data}';
+if (workerSrc.split(buggy).length !== 2) throw new Error('prepare-offline: tesseract worker patch no longer applies');
+fs.writeFileSync(path.join(ocr, 'worker.min.js'), workerSrc.replace(buggy, 'return"string"==typeof t?t:t.code}'));
 
 // --- Tailwind
 fs.writeFileSync(path.join(root, 'build', 'tailwind-input.css'),
