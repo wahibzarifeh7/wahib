@@ -2252,8 +2252,36 @@
   /* ================= search ================= */
   // Matches the query against each transaction's note, case-insensitively and
   // ignoring spaces/dashes, so "mb 1234" finds "MB12345678C" and a partial
-  // serial or customer name finds every trade it appears in.
-  function searchKey(s) { return String(s || '').toUpperCase().replace(/[\s\-_.,:;\/]+/g, ''); }
+  // serial or customer name finds every trade it appears in. Arabic spelling
+  // variants are folded too: hamza/madda forms of alef, taa marbuta/haa, alef
+  // maqsura/yaa, hamza on waw/yaa, diacritics, tatweel and Arabic-Indic digits,
+  // so "احمد" finds "أحمد" and "فاطمه" finds "فاطمة".
+  var ARABIC_FOLD = {
+    '\u0623': '\u0627', '\u0625': '\u0627', '\u0622': '\u0627', '\u0671': '\u0627', // أ إ آ ٱ -> ا
+    '\u0629': '\u0647', // ة -> ه
+    '\u0649': '\u064A', '\u0626': '\u064A', // ى ئ -> ي
+    '\u0624': '\u0648', // ؤ -> و
+  };
+  function foldChar(c) {
+    if (/[\s\-_.,:;\/\u060C\u061B\u0640]/.test(c)) return ''; // separators, Arabic comma/semicolon, tatweel
+    if (/[\u064B-\u065F\u0670]/.test(c)) return ''; // harakat
+    var code = c.charCodeAt(0);
+    if (code >= 0x0660 && code <= 0x0669) return String(code - 0x0660); // ٠-٩
+    if (code >= 0x06F0 && code <= 0x06F9) return String(code - 0x06F0); // ۰-۹
+    return ARABIC_FOLD[c] || c.toUpperCase();
+  }
+  // Folded text plus, for each folded character, the index of the original
+  // character it came from (used to highlight the match in the original note).
+  function foldWithMap(s) {
+    var out = '', map = [];
+    s = String(s || '');
+    for (var i = 0; i < s.length; i++) {
+      var f = foldChar(s[i]);
+      for (var j = 0; j < f.length; j++) { out += f[j]; map.push(i); }
+    }
+    return { text: out, map: map };
+  }
+  function searchKey(s) { return foldWithMap(s).text; }
 
   function dayLabelFor(at) {
     if (at >= state.dayStart.startedAt) return t('dayToday');
@@ -2266,9 +2294,12 @@
 
   function highlightNote(note, q) {
     var text = String(note || '');
-    var i = q ? text.toLowerCase().indexOf(q.toLowerCase()) : -1;
-    if (i < 0) return esc(text);
-    return esc(text.slice(0, i)) + '<mark class="bg-brass/30 text-paper rounded px-0.5">' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+    var key = searchKey(q);
+    var folded = foldWithMap(text);
+    var at = key ? folded.text.indexOf(key) : -1;
+    if (at < 0) return esc(text);
+    var start = folded.map[at], end = folded.map[at + key.length - 1] + 1;
+    return esc(text.slice(0, start)) + '<mark class="bg-brass/30 text-paper rounded px-0.5">' + esc(text.slice(start, end)) + '</mark>' + esc(text.slice(end));
   }
 
   var searchTimer = null;
